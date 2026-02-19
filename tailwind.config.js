@@ -74,8 +74,7 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        // Added fontFamily configuration
-        space: ["var(--font-space-regular)", "var(--font-space-semibold)"], // Custom font family
+        space: ["var(--font-space)", "sans-serif"],
       },
     },
   },

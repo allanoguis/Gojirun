@@ -3,13 +3,15 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "SpaceGrotesk-Regular";
-  src: url("../assets/fonts/SpaceGrotesk-Regular.ttf");
+  font-family: "Space Grotesk";
+  src: url("/fonts/SpaceGrotesk-Regular.ttf");
+  font-weight: 400;
 }
 
 @font-face {
-  font-family: "SpaceGrotesk-SemiBold";
-  src: url("../assets/fonts/SpaceGrotesk-SemiBold.ttf");
+  font-family: "Space Grotesk";
+  src: url("/fonts/SpaceGrotesk-SemiBold.ttf");
+  font-weight: 600;
 }
 
 * {
@@ -42,8 +44,7 @@ html {
 
 @layer base {
   :root {
-    --font-space-regular: "SpaceGrotesk-Regular";
-    --font-space-semibold: "SpaceGrotesk-SemiBold";
+    --font-space: "Space Grotesk";
     --background: 51, 48%, 92%;
     --foreground: 222.2 84% 4.9%;
     --card: 205, 28%, 40%;
@@ -72,8 +73,7 @@ html {
   }
 
   .dark {
-    --font-space-regular: "SpaceGrotesk-Regular";
-    --font-space-semibold: "SpaceGrotesk-SemiBold";
+    --font-space: "Space Grotesk";
     --background: 222, 47%, 11%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;

@@ -331,7 +331,7 @@ export default function Engine() {
   );
 
   return (
-    <div className="grid relative w-full p-4 lg:p-11 text-primary justify-center items-center select-none">
+    <div className="grid relative w-full p-4 lg:p-11 text-primary justify-center items-center select-none font-space">
       <div className="flex justify-between items-center mb-4 w-full px-2">
         <span className="font-bold text-2xl tracking-tighter">GOJIRUN</span>
         <span className="font-mono text-xl bg-primary/10 px-4 py-1 rounded-md">
