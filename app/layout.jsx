@@ -8,6 +8,9 @@ export const metadata = {
   title: "Hacktoberfest 2024",
   description:
     "Gojirun is a 2D platformer game inspired by the classic T-Rex run from Chrome. This project is dedicated to Hacktoberfest 2024 and all its contributors.",
+  icons: {
+    icon: "/assets/images/branding/favicon.ico",
+  },
 };
 
 export default function RootLayout({ children }) {

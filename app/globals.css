@@ -4,12 +4,12 @@
 
 @font-face {
   font-family: "SpaceGrotesk-Regular";
-  src: url("./fonts/SpaceGrotesk-Regular.ttf");
+  src: url("../assets/fonts/SpaceGrotesk-Regular.ttf");
 }
 
 @font-face {
   font-family: "SpaceGrotesk-SemiBold";
-  src: url("./fonts/SpaceGrotesk-SemiBold.ttf");
+  src: url("../assets/fonts/SpaceGrotesk-SemiBold.ttf");
 }
 
 * {
@@ -107,7 +107,7 @@ html {
 
 
 next-route-announcer {
-  position: static !important; 
+  position: static !important;
   width: 0;
   height: 0;
   overflow: hidden;

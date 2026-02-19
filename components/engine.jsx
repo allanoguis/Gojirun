@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import gojiraImage from "@/app/images/gojirav3.svg";
-import obstacleImage from "@/app/images/tank.svg";
-import cloud1Image from "@/app/images/cloud1.png";
-import cloud2Image from "@/app/images/cloud2.png";
-import cloud3Image from "@/app/images/cloud3.png";
+import gojiraImage from "@/assets/images/game/gojirav3.svg";
+import obstacleImage from "@/assets/images/game/tank.svg";
+import cloud1Image from "@/assets/images/game/cloud1.png";
+import cloud2Image from "@/assets/images/game/cloud2.png";
+import cloud3Image from "@/assets/images/game/cloud3.png";
 import { saveGame } from "../services/saveGameAPI/route";
 import { useUser } from "@clerk/nextjs";
 

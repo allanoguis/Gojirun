@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs"; // Clerk's useUser hook
 import { motion } from "framer-motion"; // Added useAnimation
 import Image from "next/image";
-import herogojira from "@/app/images/herogojira.png";
-import herotank from "@/app/images/herotank.png";
-import cloud1 from "@/app/images/cloud1.png";
+import herogojira from "@/assets/images/hero/herogojira.png";
+import herotank from "@/assets/images/hero/herotank.png";
+import cloud1 from "@/assets/images/game/cloud1.png";
 import { useRouter } from "next/navigation";
 
 export default function Hero() {
