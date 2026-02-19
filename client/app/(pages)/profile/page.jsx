@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { fetchHighScore } from "@/services/getHighScoreAPI/route";
-import axios from "axios";
 import Image from "next/image";
 
 export default function ProfilePage() {
@@ -46,27 +45,20 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error("Error fetching high score:", err);
-      // setError("Failed to fetch high score"); // Suppress error for UI cleanliness
     }
   }, [user?.id]);
 
   const getPastTenGames = useCallback(async () => {
     if (!user?.id) return;
-    const backendURL = process.env.NEXT_PUBLIC_API_KEY;
-    if (!backendURL) {
-      console.warn("NEXT_PUBLIC_API_KEY is missing");
-      return;
-    }
     try {
-      const response = await axios.get(`${backendURL}/api/getpastten`, {
-        params: { userId: user.id },
-      });
-      if (response.data && response.data.pastTenGames) {
-        setPastGames(response.data.pastTenGames);
+      const response = await fetch(`/api/getpastten?userId=${user.id}`);
+      if (!response.ok) throw new Error('Failed to fetch past games');
+      const data = await response.json();
+      if (data && data.pastTenGames) {
+        setPastGames(data.pastTenGames);
       }
     } catch (err) {
       console.error("Error fetching past games:", err);
-      // setError("Failed to fetch past games");
     }
   }, [user?.id]);
 

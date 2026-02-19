@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Card,
   CardTitle,
@@ -21,11 +20,11 @@ export const Leaderboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_KEY}/api/highscore`
-        );
-        console.log("API Response:", response.data); // debugging line to check API response
-        setData(response.data);
+        const response = await fetch('/api/leaderboard');
+        if (!response.ok) throw new Error('Failed to load leaderboard');
+        const result = await response.json();
+        console.log("API Response:", result); // debugging line to check API response
+        setData(result);
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Failed to load leaderboard data.");
