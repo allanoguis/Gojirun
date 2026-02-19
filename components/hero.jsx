@@ -26,7 +26,7 @@ export default function Hero() {
 
   const router = useRouter();
   const Start = () => {
-    router.push("/pages/game");
+    router.push("/game");
   };
 
   return (
