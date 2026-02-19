@@ -26,41 +26,33 @@ export default function ProfilePage() {
       : "DD/MM/YYYY";
 
   const [highscore, setHighscore] = useState(0);
-  const [error, setError] = useState(null);
   const [pastGames, setPastGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProfileData = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/profile?userId=${user.id}`);
+      if (!response.ok) throw new Error('Failed to fetch profile data');
+      const data = await response.json();
+
+      if (data) {
+        setHighscore(data.highScore || 0);
+        setPastGames(data.pastGames || []);
+      }
+    } catch (err) {
+      console.error("Error fetching profile data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     if (isSignedIn && user) {
-      getHighScore();
-      getPastTenGames();
+      fetchProfileData();
     }
-  }, [isSignedIn, user, getHighScore, getPastTenGames]);
-
-  const getHighScore = useCallback(async () => {
-    if (!user?.id) return;
-    try {
-      const res = await fetchHighScore({ playerId: user.id });
-      if (res && res.topGame) {
-        setHighscore(res.topGame.score);
-      }
-    } catch (err) {
-      console.error("Error fetching high score:", err);
-    }
-  }, [user?.id]);
-
-  const getPastTenGames = useCallback(async () => {
-    if (!user?.id) return;
-    try {
-      const response = await fetch(`/api/getpastten?userId=${user.id}`);
-      if (!response.ok) throw new Error('Failed to fetch past games');
-      const data = await response.json();
-      if (data && data.pastTenGames) {
-        setPastGames(data.pastTenGames);
-      }
-    } catch (err) {
-      console.error("Error fetching past games:", err);
-    }
-  }, [user?.id]);
+  }, [isSignedIn, user, fetchProfileData]);
 
   return (
     <>
