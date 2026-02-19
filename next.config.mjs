@@ -15,7 +15,7 @@ const nextConfig = {
   },
   webpack: (config) => {
     // Set up the alias correctly in ES module syntax
-    config.resolve.alias["@"] = path.resolve("app");
+    config.resolve.alias["@"] = path.resolve(".");
     return config;
   },
 };
