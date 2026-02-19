@@ -1,58 +1,47 @@
-import db from "../firebaseConfig.js";
+import supabase from "../supabaseClient.js";
 
 export const getLeaderBoard = async (req, res) => {
   try {
-    const gamesRef = db.collection("games");
-    const usersRef = db.collection("users");
+    // Current simple implementation: fetch top 100 scores and unique by player in JS
+    // Optimization: Create a Postgres View for this!
+    const { data: games, error } = await supabase
+      .from('games')
+      .select(`
+        player_id,
+        player_name,
+        score,
+        time,
+        users (
+          profile_image_url,
+          email
+        )
+      `)
+      .order('score', { ascending: false })
+      .limit(100);
 
-    // Get the top scores for each player
-    const topScoresQuery = await gamesRef.orderBy("score", "desc").get();
+    if (error) throw error;
 
-    // Process the query results
     const playerScores = new Map();
-    topScoresQuery.forEach((doc) => {
-      const game = doc.data();
-      if (
-        !playerScores.has(game.player) ||
-        game.score > playerScores.get(game.player).score
-      ) {
-        playerScores.set(game.player, {
-          playerId: game.player,
-          playerName: game.playerName,
+    games.forEach((game) => {
+      const playerId = game.player_id;
+      if (!playerScores.has(playerId)) {
+        playerScores.set(playerId, {
+          playerId: playerId,
+          playerName: game.player_name,
           score: game.score,
           time: game.time,
+          profileImageUrl: game.users?.profile_image_url,
+          email: game.users?.email
         });
       }
     });
 
-    // Sort players by score and get top 10
-    const topPlayers = Array.from(playerScores.values())
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
-
-    // Fetch additional user information
-    const leaderboard = await Promise.all(
-      topPlayers.map(async (player) => {
-        if (!player.playerId) {
-          return player; // Return player data without additional info
-        }
-
-        try {
-          const userDoc = await usersRef.doc(player.playerId).get();
-          const userData = userDoc.exists ? userDoc.data() : null;
-          return {
-            ...player,
-            profileImageUrl: userData ? userData.profileImageUrl : null,
-            email: userData ? userData.email : null,
-          };
-        } catch (error) {
-          return player; // Return player data without additional info
-        }
-      })
-    );
+    // Get top 10 from unique players
+    const leaderboard = Array.from(playerScores.values()).slice(0, 10);
 
     res.status(200).json({ leaderboard });
   } catch (error) {
+    console.error("Error in getLeaderBoard controller:", error);
     res.status(500).json({ message: "Error in getLeaderBoard controller" });
   }
 };

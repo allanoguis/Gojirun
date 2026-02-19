@@ -1,4 +1,4 @@
-import db from "../firebaseConfig.js";
+import supabase from "../supabaseClient.js";
 
 export const getHighscoreForPlayer = async (req, res) => {
   const { playerId } = req.query;
@@ -8,30 +8,34 @@ export const getHighscoreForPlayer = async (req, res) => {
   }
 
   try {
-    const gamesRef = db.collection("games");
-
-    const playerGamesQuery = await gamesRef
-      .where("player", "==", playerId)
-      .orderBy("score", "desc")
+    const { data, error } = await supabase
+      .from('games')
+      .select('*')
+      .eq('player_id', playerId)
+      .order('score', { ascending: false })
       .limit(1)
-      .get();
+      .single();
 
-    if (playerGamesQuery.empty) {
-      return res
-        .status(404)
-        .json({ message: "No games found for the specified player" });
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" for .single()
+      throw error;
     }
 
-    let topGame;
-    playerGamesQuery.forEach((doc) => {
-      topGame = {
-        id: doc.id,
-        ...doc.data(),
-      };
-    });
+    if (!data) {
+      return res.status(404).json({ message: "No games found for the specified player" });
+    }
+
+    const topGame = {
+      id: data.id,
+      ...data,
+      player: data.player_id, // mapping back for frontend compatibility if needed
+      playerName: data.player_name,
+      time: data.time,
+      score: data.score
+    };
 
     res.status(200).json({ topGame });
   } catch (error) {
+    console.error("Error retrieving high score:", error);
     res.status(500).json({ message: "Error retrieving high score for player" });
   }
 };

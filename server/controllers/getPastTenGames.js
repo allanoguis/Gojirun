@@ -1,4 +1,4 @@
-import db from "../firebaseConfig.js";
+import supabase from "../supabaseClient.js";
 
 export const getpastTenGames = async (req, res) => {
   try {
@@ -8,23 +8,20 @@ export const getpastTenGames = async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    const gamesRef = db.collection("games");
-    const pastTenGamesQuery = await gamesRef
-      .where("player", "==", userId)
-      .orderBy("time", "desc")
-      .limit(10)
-      .get();
+    const { data: pastTenGames, error } = await supabase
+      .from('games')
+      .select('*')
+      .eq('player_id', userId)
+      .order('time', { ascending: false })
+      .limit(10);
 
-    const pastTenGames = [];
-    pastTenGamesQuery.forEach((doc) => {
-      pastTenGames.push({
-        id: doc.id,
-        ...doc.data(),
-      });
-    });
+    if (error) {
+      throw error;
+    }
 
     res.status(200).json({ pastTenGames });
   } catch (error) {
+    console.error("Error getting past ten games:", error);
     res.status(500).json({ message: "Error getting past ten games" });
   }
 };
