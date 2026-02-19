@@ -42,26 +42,90 @@ const CLOUD3_SPEED = 1;
 const CLOUD3_Y = GAME_HEIGHT / 3 - CLOUD3_HEIGHT;
 
 export default function Engine() {
-  // State variables
+  // State variables for UI rendering
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
-  const [ground, setGround] = useState(GROUND);
-  const [obstacle, setObstacle] = useState(GAME_WIDTH); // Spawn point of the obstacle
-  const [cloud1, setCloud1] = useState(GAME_WIDTH); // Spawn point of the cloud1
-  const [cloud2, setCloud2] = useState(GAME_WIDTH); // Spawn point of the cloud2
-  const [cloud3, setCloud3] = useState(GAME_WIDTH); // cloud3
   const [score, setScore] = useState(0);
+  const [ground, setGround] = useState(GROUND);
   const [jumping, setJumping] = useState(false);
-  const { isLoaded, isSignedIn, user } = useUser(); // Use Clerk's useUser hook to detect sign-in
 
-  // Refs
+  // Refs for high-frequency game logic (avoids re-renders)
+  const obstacleRef = useRef(GAME_WIDTH);
+  const cloud1Ref = useRef(GAME_WIDTH);
+  const cloud2Ref = useRef(GAME_WIDTH);
+  const cloud3Ref = useRef(GAME_WIDTH);
+  const scoreRef = useRef(0);
+  const isSavingRef = useRef(false);
+  const groundRef = useRef(GROUND);
+
+  const { isLoaded, isSignedIn, user } = useUser();
+
+  // Audio/Image Refs
   const canvasRef = useRef(null);
   const gojiraImgRef = useRef(null);
   const obstacleImgRef = useRef(null);
   const cloud1ImgRef = useRef(null);
   const cloud2ImgRef = useRef(null);
   const cloud3ImgRef = useRef(null);
-  const gameLoopRef = useRef(null); // Ref to store the game loop
+  const gameLoopRef = useRef(null);
+
+  const saveGameFromFrontend = useCallback(
+    async (finalScore) => {
+      if (isSavingRef.current) return;
+      isSavingRef.current = true;
+
+      try {
+        // Fetch the public IP address
+        const ipResponse = await fetch("https://api64.ipify.org?format=json");
+        const ipData = await ipResponse.json();
+        const ipAddress = ipData.ip;
+
+        // Detect user device/browser info
+        const userAgent = navigator.userAgent;
+        const isBrave = !!navigator.brave;
+        const isEdge = /Edg/.test(userAgent);
+        const isChrome =
+          /Chrome/.test(userAgent) &&
+          !isEdge &&
+          !isBrave &&
+          !/OPR/.test(userAgent);
+        const isFirefox = /Firefox/.test(userAgent);
+        const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+        const isOpera = /OPR/.test(userAgent);
+
+        // Handle Guest vs Signed In
+        const playerID = isLoaded && isSignedIn && user ? user.id : "000000";
+        const fullname = isLoaded && isSignedIn && user ? user.fullName : "Guest";
+
+        let browserName = "Unknown Browser";
+        if (isBrave) browserName = "Brave";
+        else if (isEdge) browserName = "Microsoft Edge";
+        else if (isChrome) browserName = "Chrome";
+        else if (isFirefox) browserName = "Firefox";
+        else if (isSafari) browserName = "Safari";
+        else if (isOpera) browserName = "Opera";
+
+        const data = {
+          player: playerID,
+          playerName: fullname,
+          score: finalScore,
+          time: new Date(),
+          ipAddress: ipAddress,
+          deviceType: browserName,
+          userAgent: userAgent,
+        };
+
+        await saveGame(data);
+        console.log("Game saved successfully:", data);
+      } catch (error) {
+        console.error("Error saving game data:", error);
+      } finally {
+        // We don't reset isSaving here directly to prevent multiple attempts 
+        // until a new game starts.
+      }
+    },
+    [isLoaded, isSignedIn, user]
+  );
 
   // Jump function
   const jump = useCallback(() => {
@@ -73,16 +137,19 @@ export default function Engine() {
         if (jumpHeight < JUMP_HEIGHT) {
           jumpHeight += JUMP_HEIGHT / (jumpDuration / jumpInterval);
           setGround(jumpHeight);
+          groundRef.current = jumpHeight;
         } else {
           clearInterval(jumpUp);
           const fallDown = setInterval(() => {
             if (jumpHeight > GROUND) {
               jumpHeight -= JUMP_HEIGHT / (jumpDuration / jumpInterval);
               setGround(jumpHeight);
+              groundRef.current = jumpHeight;
             } else {
               clearInterval(fallDown);
               setJumping(false);
               setGround(GROUND);
+              groundRef.current = GROUND;
             }
           }, jumpInterval);
         }
@@ -90,20 +157,12 @@ export default function Engine() {
     }
   }, [jumping, gameOver]);
 
-  // Handle key press
+  // Handle input
   const handleInput = useCallback(
     (event) => {
-      const allowedKeys = [
-        "Space",
-        "ArrowRight",
-        "ArrowUp",
-        "ArrowLeft",
-        "ArrowDown",
-      ];
+      const allowedKeys = ["Space", "ArrowUp"];
       if (!gameStarted) {
-        setGameStarted(true);
-        setGameOver(false);
-        setScore(0);
+        handleStartGame();
       } else if (allowedKeys.includes(event.code) || event.type === "click") {
         jump();
       }
@@ -123,82 +182,70 @@ export default function Engine() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
-
     if (!context) return;
 
     const loadImage = (ref, src) => {
       if (typeof Image !== "undefined" && !ref.current) {
         ref.current = new Image();
         ref.current.src = src;
-        ref.current.onload = () => setScore(0); // check if the assets are loaded then reset the score
       }
     };
 
-    loadImage(gojiraImgRef, gojiraImage.src); // Load Gojira image
-    loadImage(obstacleImgRef, obstacleImage.src); // Load obstacle image
-    loadImage(cloud1ImgRef, cloud1Image.src); // Load cloud1 image
-    loadImage(cloud2ImgRef, cloud2Image.src); // Load cloud 2 image
-    loadImage(cloud3ImgRef, cloud3Image.src); // Load cloud3
+    loadImage(gojiraImgRef, gojiraImage.src);
+    loadImage(obstacleImgRef, obstacleImage.src);
+    loadImage(cloud1ImgRef, cloud1Image.src);
+    loadImage(cloud2ImgRef, cloud2Image.src);
+    loadImage(cloud3ImgRef, cloud3Image.src);
 
-    const draw = (context) => {
+    const draw = () => {
       context.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-      context.drawImage(
-        gojiraImgRef.current,
-        SPAWN_POINT,
-        GAME_HEIGHT - (jumping ? JUMP_HEIGHT : ground) - GOJIRA_HEIGHT,
-        GOJIRA_WIDTH,
-        GOJIRA_HEIGHT
-      );
+
+      // Gojira
+      if (gojiraImgRef.current) {
+        context.drawImage(
+          gojiraImgRef.current,
+          SPAWN_POINT,
+          GAME_HEIGHT - groundRef.current - GOJIRA_HEIGHT,
+          GOJIRA_WIDTH,
+          GOJIRA_HEIGHT
+        );
+      }
+
+      // Obstacle
       if (obstacleImgRef.current) {
         context.drawImage(
           obstacleImgRef.current,
-          obstacle,
+          obstacleRef.current,
           GAME_HEIGHT - OBSTACLE_HEIGHT,
           OBSTACLE_WIDTH,
           OBSTACLE_HEIGHT
         );
       }
+
+      // Clouds
       if (cloud1ImgRef.current) {
-        context.drawImage(
-          cloud1ImgRef.current,
-          cloud1,
-          CLOUD1_Y,
-          CLOUD1_WIDTH,
-          CLOUD1_HEIGHT
-        ); // Draw cloud1
+        context.drawImage(cloud1ImgRef.current, cloud1Ref.current, CLOUD1_Y, CLOUD1_WIDTH, CLOUD1_HEIGHT);
       }
       if (cloud2ImgRef.current) {
-        context.drawImage(
-          cloud2ImgRef.current,
-          cloud2,
-          CLOUD2_Y,
-          CLOUD2_WIDTH,
-          CLOUD2_HEIGHT
-        );
+        context.drawImage(cloud2ImgRef.current, cloud2Ref.current, CLOUD2_Y, CLOUD2_WIDTH, CLOUD2_HEIGHT);
       }
       if (cloud3ImgRef.current) {
-        context.drawImage(
-          cloud3ImgRef.current,
-          cloud3,
-          CLOUD3_Y,
-          CLOUD3_WIDTH,
-          CLOUD3_HEIGHT
-        );
+        context.drawImage(cloud3ImgRef.current, cloud3Ref.current, CLOUD3_Y, CLOUD3_WIDTH, CLOUD3_HEIGHT);
       }
     };
 
     const isColliding = () => {
       const gojiraRect = {
-        left: SPAWN_POINT,
-        right: SPAWN_POINT + GOJIRA_WIDTH,
-        top: GAME_HEIGHT - (jumping ? JUMP_HEIGHT : ground) - GOJIRA_HEIGHT,
-        bottom: GAME_HEIGHT - (jumping ? JUMP_HEIGHT : ground),
+        left: SPAWN_POINT + 20, // Add padding for better hitbox
+        right: SPAWN_POINT + GOJIRA_WIDTH - 20,
+        top: GAME_HEIGHT - groundRef.current - GOJIRA_HEIGHT + 20,
+        bottom: GAME_HEIGHT - groundRef.current - 10,
       };
 
       const obstacleRect = {
-        left: obstacle,
-        right: obstacle + OBSTACLE_WIDTH,
-        top: GAME_HEIGHT - OBSTACLE_HEIGHT,
+        left: obstacleRef.current + 10,
+        right: obstacleRef.current + OBSTACLE_WIDTH - 10,
+        top: GAME_HEIGHT - OBSTACLE_HEIGHT + 10,
         bottom: GAME_HEIGHT,
       };
 
@@ -211,176 +258,116 @@ export default function Engine() {
     };
 
     const gameLoop = () => {
-      setObstacle((prevLeft) => {
-        if (prevLeft <= -OBSTACLE_WIDTH) {
-          return GAME_WIDTH;
-        }
-        return prevLeft - GAME_SPEED;
-      });
-
-      setCloud1((prevLeft) => {
-        if (prevLeft <= -CLOUD1_WIDTH) {
-          return GAME_WIDTH;
-        }
-        return prevLeft - CLOUD1_SPEED;
-      });
-
-      setCloud2((prevLeft) => {
-        if (prevLeft <= -CLOUD2_WIDTH) {
-          return GAME_WIDTH;
-        }
-        return prevLeft - CLOUD2_SPEED;
-      });
-
-      setCloud3((prevLeft) => {
-        if (prevLeft <= -CLOUD3_WIDTH) {
-          return GAME_WIDTH;
-        }
-        return prevLeft - CLOUD3_SPEED;
-      });
-
-      setScore((prevScore) => prevScore + 1);
-
       if (isColliding()) {
-        clearInterval(gameLoopRef.current);
-        setObstacle(GAME_WIDTH);
         setGameOver(true);
         setGameStarted(false);
+        saveGameFromFrontend(scoreRef.current);
+        return;
       }
 
-      draw(context);
+      // Move Entities
+      obstacleRef.current -= GAME_SPEED;
+      if (obstacleRef.current <= -OBSTACLE_WIDTH) obstacleRef.current = GAME_WIDTH;
+
+      cloud1Ref.current -= CLOUD1_SPEED;
+      if (cloud1Ref.current <= -CLOUD1_WIDTH) cloud1Ref.current = GAME_WIDTH;
+
+      cloud2Ref.current -= CLOUD2_SPEED;
+      if (cloud2Ref.current <= -CLOUD2_WIDTH) cloud2Ref.current = GAME_WIDTH;
+
+      cloud3Ref.current -= CLOUD3_SPEED;
+      if (cloud3Ref.current <= -CLOUD3_WIDTH) cloud3Ref.current = GAME_WIDTH;
+
+      // Update Score
+      scoreRef.current += 1;
+      if (scoreRef.current % 10 === 0) {
+        setScore(scoreRef.current);
+      }
+
+      draw();
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     };
 
     if (gameStarted && !gameOver) {
       gameLoopRef.current = requestAnimationFrame(gameLoop);
+    } else {
+      draw(); // Draw final state
     }
 
     return () => cancelAnimationFrame(gameLoopRef.current);
-  }, [gameStarted, gameOver, obstacle, ground, cloud1, cloud2, cloud3, jumping]);
+  }, [gameStarted, gameOver, saveGameFromFrontend]);
 
-  useEffect(() => {
-    // Retrieve score from localStorage when the component mounts
-    const savedScore = localStorage.getItem("savedScore");
-    if (savedScore && !gameOver) {
-      // Check if game is not over
-      setScore(Number(savedScore)); // Set the score if it exists
-    } else {
-      setScore(0); // Reset score to 0 if game is over or no saved score
-    }
-  }, [gameOver]);
+  const handleStartGame = () => {
+    isSavingRef.current = false;
+    scoreRef.current = 0;
+    obstacleRef.current = GAME_WIDTH;
+    cloud1Ref.current = GAME_WIDTH;
+    cloud2Ref.current = GAME_WIDTH;
+    cloud3Ref.current = GAME_WIDTH;
+    groundRef.current = GROUND;
 
-  useEffect(() => {
-    // Save the score to localStorage whenever it changes
-    localStorage.setItem("savedScore", score.toString());
-    if (gameOver) {
-      saveGameFromFrontend();
-    }
-  }, [score, gameOver, saveGameFromFrontend]); // Run whenever score changes
-
-  const saveGameFromFrontend = useCallback(async () => {
-    try {
-      // Fetch the public IP address
-      const ipResponse = await fetch("https://api64.ipify.org?format=json");
-      const ipData = await ipResponse.json();
-      const ipAddress = ipData.ip;
-
-      const currentTime = new Date();
-
-      // Detect user device/browser info
-      const userAgent = navigator.userAgent;
-      const isBrave = !!navigator.brave; // Detect Brave browser
-      const isEdge = /Edg/.test(userAgent); // Detect Microsoft Edge
-      const isChrome =
-        /Chrome/.test(userAgent) &&
-        !isEdge &&
-        !isBrave &&
-        !/OPR/.test(userAgent);
-      const isFirefox = /Firefox/.test(userAgent);
-      const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
-      const isOpera = /OPR/.test(userAgent);
-      const playerID = isLoaded && isSignedIn && user ? user.id : "000000";
-      const fullname = isLoaded && isSignedIn && user ? user.fullName : "Guest";
-
-      let browserName = "Unknown Browser";
-      if (isBrave) {
-        browserName = "Brave";
-      } else if (isEdge) {
-        browserName = "Microsoft Edge";
-      } else if (isChrome) {
-        browserName = "Chrome";
-      } else if (isFirefox) {
-        browserName = "Firefox";
-      } else if (isSafari) {
-        browserName = "Safari";
-      } else if (isOpera) {
-        browserName = "Opera";
-      }
-
-      // Call the saveGame API with extended payload
-      const data = {
-        player: playerID,
-        playerName: fullname,
-        score: score,
-        time: currentTime,
-        ipAddress: ipAddress,
-        deviceType: browserName,
-        userAgent: userAgent,
-      };
-      await saveGame(data);
-      console.log(data);
-    } catch (error) {
-      console.error("Error fetching IP or saving game data:", error);
-    }
-  }, [isLoaded, isSignedIn, user, score]);
+    setScore(0);
+    setGround(GROUND);
+    setGameOver(false);
+    setGameStarted(true);
+  };
 
   const GameOverMessage = () => (
-    <span className="text-2xl text-primary font-semibold uppercase antialiased">
-      G A M E O V E R
-    </span>
+    <div className="flex flex-col items-center gap-4">
+      <span className="text-4xl text-primary font-bold uppercase antialiased tracking-widest">
+        G A M E O V E R
+      </span>
+      <span className="text-xl">Final Score: {score}</span>
+    </div>
   );
 
   const StartGameButton = ({ onClick, isGameOver }) => (
-    <span className="flex flex-col">
-      <button
-        onClick={onClick}
-        className="text-primary font-semibold animate-pulse antialiased"
-      >
-        {isGameOver ? "R E S T A R T" : "S T A R T   G A M E"}
-      </button>
-    </span>
+    <button
+      onClick={onClick}
+      className="px-8 py-3 bg-primary text-secondary font-bold text-xl rounded-full hover:scale-105 transition-transform animate-pulse antialiased shadow-lg"
+    >
+      {isGameOver ? "R E S T A R T" : "S T A R T   G A M E"}
+    </button>
   );
 
-  const handleStartGame = () => {
-    setGameStarted(true);
-    setGameOver(false);
-    setScore(0);
-    setObstacle(GAME_WIDTH); // Reset obstacle position when the game starts
-    setCloud1(GAME_WIDTH); // Reset cloud1 position when the game starts
-    setCloud2(GAME_WIDTH);
-    setCloud3(GAME_WIDTH);
-  };
   return (
-    <>
-      <div className="grid relative w-full p-11 text-primary justify-center items-center">
-        <span className="font-semibold text-center">Score: {score}</span>
+    <div className="grid relative w-full p-4 lg:p-11 text-primary justify-center items-center select-none">
+      <div className="flex justify-between items-center mb-4 w-full px-2">
+        <span className="font-bold text-2xl tracking-tighter">GOJIRUN</span>
+        <span className="font-mono text-xl bg-primary/10 px-4 py-1 rounded-md">
+          {score.toString().padStart(6, '0')}
+        </span>
+      </div>
+
+      <div className="relative group rounded-xl overflow-hidden shadow-2xl border-4 border-primary/20">
         <canvas
           ref={canvasRef}
           id="gameCanvas"
           width={GAME_WIDTH}
           height={GAME_HEIGHT}
-          className="border border-white bg-gradient-to-b from-blue-400 to-orange-400"
+          className="w-full h-auto bg-gradient-to-b from-blue-400 to-orange-400 dark:from-blue-900 dark:to-orange-900"
         />
-        <div className="absolute flex flex-col justify-center items-center">
-          {gameOver && <GameOverMessage />}
-          {!gameStarted && (
-            <StartGameButton onClick={handleStartGame} isGameOver={gameOver} />
+
+        <div className="absolute inset-0 flex flex-col justify-center items-center backdrop-blur-[2px] bg-black/10 transition-all duration-500">
+          {(gameOver || !gameStarted) && (
+            <div className="bg-background/90 p-10 rounded-2xl shadow-2xl border border-primary/20 flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
+              {gameOver && <GameOverMessage />}
+              <StartGameButton onClick={handleStartGame} isGameOver={gameOver} />
+            </div>
           )}
         </div>
-        <div className="mt-4 text-sm text-primary text-center antialiased">
-          press space key to jump
+      </div>
+
+      <div className="mt-6 flex justify-center gap-8 text-sm font-medium text-primary/60 uppercase tracking-widest antialiased">
+        <div className="flex items-center gap-2">
+          <kbd className="px-2 py-1 bg-primary/10 rounded border border-primary/20">SPACE</kbd>
+          <span>JUMP</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <kbd className="px-2 py-1 bg-primary/10 rounded border border-primary/20">CLICK</kbd>
+          <span>JUMP</span>
         </div>
       </div>
-    </>
+    </div>
   );
 }
