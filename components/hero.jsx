@@ -27,7 +27,7 @@ export default function Hero() {
 
   return (
     <>
-      <section className="relative flex items-center justify-center h-[calc(100vh-var(--nav-height))] mt-[var(--nav-height)] w-full bg-gradient-to-b from-blue-400 to-orange-400 dark:from-blue-900 dark:to-orange-900 overflow-hidden">
+      <section className="relative flex items-center justify-center h-screen w-full bg-gradient-to-b from-blue-400 to-orange-400 dark:from-blue-900 dark:to-orange-900 overflow-hidden">
         {/* Loading Screen */}
         {!isLoaded && (
           <motion.div
