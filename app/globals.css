@@ -23,11 +23,10 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-}
-
-html {
   overflow: hidden;
 }
+
+html {}
 
 ::-webkit-scrollbar {
   width: 0px;
