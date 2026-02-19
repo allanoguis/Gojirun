@@ -3,7 +3,8 @@ import Engine from "@/components/engine";
 
 const gamePage = () => {
   return (
-    <section className="flex h-screen items-center justify-center">
+    <section className="flex flex-col h-screen items-center justify-center">
+      <h1 className="text-2xl font-bold mb-4">GojiRun Game Page</h1>
       <div className="container">
         <Engine />
       </div>
