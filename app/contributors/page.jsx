@@ -4,7 +4,7 @@ import Footer from "@/components/footer";
 
 const contributorsPage = () => {
   return (
-    <main className="grid h-screen overscroll-y-auto min-w-full">
+    <main className="grid min-h-screen min-w-full">
       <Suspense>
         <Collaborators />
         <Footer />
