@@ -1,5 +1,6 @@
 "use client"; // Marks this component as client-side
 
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs"; // Clerk's useUser hook
 import { motion } from "framer-motion"; // Added useAnimation
@@ -25,6 +26,19 @@ export default function Hero() {
     router.push("/game");
   };
 
+  // Multiply clouds by 3 and randomize their positions for continuous scrolling
+  const clouds = React.useMemo(() => {
+    return Array.from({ length: 9 }).map((_, i) => ({
+      id: i,
+      top: `${Math.floor(Math.random() * 40) + 5}%`, // 5% to 45%
+      delay: Math.random() * -60, // Negative delay to populate screen immediately
+      duration: Math.floor(Math.random() * 20) + 30, // 30s to 50s for a slow drift
+      width: Math.floor(Math.random() * 150) + 100, // 100px to 250px
+      opacity: (Math.random() * 0.4 + 0.3).toFixed(2), // 0.3 to 0.7
+      blur: `blur(${Math.floor(Math.random() * 3)}px)`,
+    }));
+  }, []);
+
   return (
     <>
       <section className="relative flex items-center justify-center h-screen w-full bg-gradient-to-b from-blue-400 to-orange-400 dark:from-blue-900 dark:to-orange-900 overflow-hidden">
@@ -39,6 +53,26 @@ export default function Hero() {
             <h2 className="text-2xl font-bold">Loading...</h2>
           </motion.div>
         )}
+
+        {/* Randomized Continuous Clouds - Background Layer */}
+        {clouds.map((cloud) => (
+          <motion.div
+            key={cloud.id}
+            initial={{ opacity: cloud.opacity, x: "110vw", top: cloud.top }}
+            animate={{
+              x: "-110vw",
+            }}
+            transition={{
+              duration: cloud.duration,
+              delay: cloud.delay,
+              ease: "linear",
+              repeat: Infinity,
+            }}
+            className={`absolute pointer-events-none select-none ${cloud.blur}`}
+          >
+            <Image src={cloud1} alt="Decoration Cloud" width={cloud.width} />
+          </motion.div>
+        ))}
 
         {/* Main Content */}
         <motion.div
@@ -73,7 +107,7 @@ export default function Hero() {
             bottom: 0,
           }}
           transition={{ duration: 1, type: "spring", damping: 20 }}
-          className="absolute left-0 bottom-0 pointer-events-none"
+          className="absolute left-0 bottom-0 pointer-events-none z-20"
         >
           <div className="relative w-[300px] md:w-[500px] h-[300px] md:h-[500px]">
             <Image
@@ -95,7 +129,7 @@ export default function Hero() {
             bottom: 0,
           }}
           transition={{ duration: 1, delay: 0.2, type: "spring", damping: 20 }}
-          className="absolute right-0 bottom-0 pointer-events-none"
+          className="absolute right-0 bottom-0 pointer-events-none z-20"
         >
           <div className="relative w-[250px] md:w-[500px] h-[150px] md:h-[250px]">
             <Image
@@ -105,48 +139,6 @@ export default function Hero() {
               className="object-contain object-bottom"
             />
           </div>
-        </motion.div>
-
-        {/* cloud1 (background decoration) */}
-        <motion.div
-          initial={{ opacity: 0, x: "100%" }}
-          animate={{
-            opacity: 0.6,
-            x: "10%",
-            top: "15%",
-          }}
-          transition={{ duration: 2, delay: 0.5 }}
-          className="absolute pointer-events-none select-none blur-[1px]"
-        >
-          <Image src={cloud1} alt="Decoration Cloud" width={150} />
-        </motion.div>
-
-        {/* cloud2 (background decoration) */}
-        <motion.div
-          initial={{ opacity: 0, x: "100%" }}
-          animate={{
-            opacity: 0.4,
-            x: "45%",
-            top: "25%",
-          }}
-          transition={{ duration: 2, delay: 0.7 }}
-          className="absolute pointer-events-none select-none blur-[2px]"
-        >
-          <Image src={cloud1} alt="Decoration Cloud" width={200} />
-        </motion.div>
-
-        {/* cloud3 (background decoration) */}
-        <motion.div
-          initial={{ opacity: 0, x: "100%" }}
-          animate={{
-            opacity: 0.5,
-            x: "75%",
-            top: "10%",
-          }}
-          transition={{ duration: 2, delay: 1 }}
-          className="absolute pointer-events-none select-none blur-[1px]"
-        >
-          <Image src={cloud1} alt="Decoration Cloud" width={120} />
         </motion.div>
       </section>
     </>
