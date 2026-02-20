@@ -361,7 +361,7 @@ export default function Engine() {
   );
 
   return (
-    <div className="grid relative w-full min-h-screen pt-[64px] p-4 lg:p-11 text-primary justify-center items-center select-none font-space overscroll-none">
+    <div className="grid relative w-full min-h-screen mt-[120px] p-4 lg:p-11 text-primary justify-center items-center select-none font-space overscroll-none">
       <div className="flex justify-between items-center mb-4 w-full px-2">
         <span className="font-bold text-2xl tracking-tighter">GOJIRUN</span>
         <div className="flex items-center gap-3">
@@ -378,14 +378,14 @@ export default function Engine() {
           <button
             onClick={handleManualSave}
             disabled={isSaving || score === 0}
-            className="px-3 py-1 bg-primary text-secondary text-[10px] font-bold rounded-md hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 antialiased shadow-sm"
+            className="px-4 py-1 bg-primary text-secondary text-xl font-bold rounded-md hover:bg-red-600 hover:text-white transition-all disabled:opacity-50 antialiased shadow-sm"
           >
             {isSaving ? "SAVING..." : "SAVE SCORE"}
           </button>
         </div>
       </div>
 
-      <div className="relative group rounded-xl overflow-hidden shadow-2xl border-4 border-primary/20">
+      <div className="relative group rounded-xl overflow-hidden shadow-2xl">
         <canvas
           ref={canvasRef}
           id="gameCanvas"
