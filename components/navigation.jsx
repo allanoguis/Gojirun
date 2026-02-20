@@ -59,7 +59,7 @@ export default function Navigation() {
         <SignedOut>
           <SignInButton mode="modal">
             <button className="px-4 py-1.5 bg-primary text-secondary font-bold text-sm rounded-md hover:scale-105 transition-transform animate-pulse antialiased shadow-lg whitespace-nowrap ml-2">
-              SIGN IN
+              SIGN IN / REGISTER
             </button>
           </SignInButton>
         </SignedOut>
