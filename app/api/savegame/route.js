@@ -18,6 +18,6 @@ export async function POST(request) {
         return NextResponse.json({ message: 'Game saved successfully', id: savedGame.id }, { status: 201 });
     } catch (error) {
         console.error('Error in savegame route:', error);
-        return NextResponse.json({ message: 'Error saving game' }, { status: 500 });
+        return NextResponse.json({ message: `Error saving game: ${error.message || 'Unknown error'}` }, { status: 500 });
     }
 }

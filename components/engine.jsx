@@ -6,7 +6,7 @@ import obstacleImage from "@/assets/images/game/tank.svg";
 import cloud1Image from "@/assets/images/game/cloud1.png";
 import cloud2Image from "@/assets/images/game/cloud2.png";
 import cloud3Image from "@/assets/images/game/cloud3.png";
-import { saveGame } from "@/lib/api-client";
+import { saveGame, saveUser } from "@/lib/api-client";
 import { useUser } from "@clerk/nextjs";
 
 // Constants
@@ -75,12 +75,18 @@ export default function Engine() {
     async (finalScore) => {
       if (isSavingRef.current) return;
       isSavingRef.current = true;
+      setSaveMessage("SAVING...");
 
       try {
-        // Fetch the public IP address
-        const ipResponse = await fetch("https://api64.ipify.org?format=json");
-        const ipData = await ipResponse.json();
-        const ipAddress = ipData.ip;
+        // Fetch the public IP address with fallback
+        let ipAddress = "0.0.0.0";
+        try {
+          const ipResponse = await fetch("https://api64.ipify.org?format=json");
+          const ipData = await ipResponse.json();
+          ipAddress = ipData.ip;
+        } catch (e) {
+          console.warn("Could not fetch IP address, using fallback:", e);
+        }
 
         // Detect user device/browser info
         const userAgent = navigator.userAgent;
@@ -97,7 +103,27 @@ export default function Engine() {
 
         // Handle Guest vs Signed In
         const playerID = isLoaded && isSignedIn && user ? user.id : "000000";
-        const fullname = isLoaded && isSignedIn && user ? user.fullName : "Guest";
+        const email = isLoaded && isSignedIn && user && user.emailAddresses[0] ? user.emailAddresses[0].emailAddress : "guest@gojirun.local";
+        const fullname = isLoaded && isSignedIn && user ? user.firstName || "Guest" : "Guest";
+        const profileImage = isLoaded && isSignedIn && user ? user.imageUrl : "https://nosrc.net/100x100";
+        const createdAt = isLoaded && isSignedIn && user ? user.createdAt : new Date();
+        const lastSignInAt = isLoaded && isSignedIn && user ? user.lastSignInAt : new Date();
+
+        // 1. Synchronize user profile with Supabase before saving the score
+        try {
+          await saveUser({
+            userId: playerID,
+            email: email,
+            fullname: fullname,
+            profileImageUrl: profileImage,
+            createdAt: createdAt,
+            lastSignInAt: lastSignInAt
+          });
+          console.log("User synchronized successfully");
+        } catch (userSyncError) {
+          console.error("User synchronization failed:", userSyncError);
+          // We continue saving the game even if sync fails, as the score is priority
+        }
 
         let browserName = "Unknown Browser";
         if (isBrave) browserName = "Brave";
@@ -119,11 +145,15 @@ export default function Engine() {
 
         await saveGame(data);
         console.log("Game saved successfully:", data);
+        setSaveMessage("SAVED!");
+        setTimeout(() => setSaveMessage(""), 3000);
       } catch (error) {
         console.error("Error saving game data:", error);
+        setSaveMessage("ERROR");
+        setTimeout(() => setSaveMessage(""), 3000);
+        throw error; // Re-throw so caller can handle
       } finally {
-        // We don't reset isSaving here directly to prevent multiple attempts 
-        // until a new game starts.
+        isSavingRef.current = false;
       }
     },
     [isLoaded, isSignedIn, user]
@@ -331,17 +361,12 @@ export default function Engine() {
   const handleManualSave = async () => {
     if (score === 0 || isSaving) return;
     setIsSaving(true);
-    setSaveMessage("");
     try {
       await saveGameFromFrontend(score);
-      setSaveMessage("SAVED!");
-      setTimeout(() => setSaveMessage(""), 2000);
     } catch (error) {
-      setSaveMessage("ERROR");
-      setTimeout(() => setSaveMessage(""), 2000);
+      // Error is already logged and displayed by saveGameFromFrontend
     } finally {
       setIsSaving(false);
-      isSavingRef.current = false; // Reset the ref to allow future saves
     }
   };
 
