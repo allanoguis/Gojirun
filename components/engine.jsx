@@ -300,7 +300,6 @@ export default function Engine() {
       if (isColliding()) {
         setGameOver(true);
         setGameStarted(false);
-        saveGameFromFrontend(scoreRef.current);
         return;
       }
 
