@@ -371,7 +371,7 @@ export default function Engine() {
       <div className="flex flex-col-reverse md:flex-row justify-between items-center w-full max-w-[1000px] gap-4 px-2 py-2">
         <div className="flex justify-center gap-4 md:gap-8 text-[10px] md:text-sm font-medium text-primary/60 uppercase tracking-widest antialiased">
           <div className="hidden md:flex items-center gap-2">
-            <kbd className="px-2 py-1 bg-primary/10 rounded border border-primary/20 font-sans">SPACE</kbd>
+            <kbd className="px-2 py-1 bg-primary/10 rounded border border-primary/20 font-sans">SPACE / MOUSE CLICK</kbd>
             <span>JUMP</span>
           </div>
           <div className="flex items-center gap-2">
