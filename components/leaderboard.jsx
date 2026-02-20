@@ -51,51 +51,60 @@ export const Leaderboard = () => {
             Top Ranking Players
           </Badge>
         </div>
-        <ul className="flex flex-col gap-4">
-          {data &&
-            data.leaderboard
-              .sort((a, b) => b.score - a.score)
-              .slice(0, 5)
-              .map((game, index) => (
-                <li key={`${game.id}-${index}`}>
-                  {" "}
-                  <Badge variant="default" className="text-sm">
+        <ul className="flex flex-col gap-4 w-full max-w-2xl px-4 pb-20">
+          {data && data.leaderboard && data.leaderboard.length > 0 ? (
+            data.leaderboard.map((game, index) => (
+              <li key={`${game.playerId || index}-${index}`} className="w-full">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="default" className="text-xs md:text-sm">
                     {(() => {
-                      const badgeLabels = {
-                        0: (
-                          <>
-                            <Trophy className="w-6 h-6 mr-2 animate-pulse" />{" "}
-                            CHAMPION
-                          </>
-                        ),
-                        1: (
-                          <>
-                            <Medal className="w-6 h-6 mr-2 animate-pulse" />{" "}
-                            CHALLENGER
-                          </>
-                        ),
-                        2: (
-                          <>
-                            <Star className="w-6 h-6 mr-2 animate-pulse" />{" "}
-                            RUNNER-UP
-                          </>
-                        ),
-                      };
-                      return badgeLabels[index] || " ";
+                      if (index === 0) return <><Trophy className="w-4 h-4 mr-2 animate-pulse text-yellow-400" /> CHAMPION</>;
+                      if (index === 1) return <><Medal className="w-4 h-4 mr-2 animate-pulse text-gray-300" /> CHALLENGER</>;
+                      if (index === 2) return <><Star className="w-4 h-4 mr-2 animate-pulse text-orange-400" /> RUNNER-UP</>;
+                      return `RANK #${index + 1}`;
                     })()}
                   </Badge>
-                  <Card>
-                    <CardTitle>
-                      <Badge variant="secondary">{index + 1}</Badge>
-                    </CardTitle>
-                    <CardHeader>score: {game.score}</CardHeader>
-                    <CardContent>
-                      name: {game.playerName || "Tester"}
-                    </CardContent>
-                    <CardFooter></CardFooter>
-                  </Card>
-                </li>
-              ))}
+                </div>
+                <Card className="hover:scale-[1.02] transition-transform duration-300 border-primary/20 bg-background/50 backdrop-blur-sm">
+                  <div className="flex items-center p-4 gap-4">
+                    <div className="flex-shrink-0">
+                      <Badge variant="secondary" className="text-lg w-8 h-8 flex items-center justify-center rounded-full">
+                        {index + 1}
+                      </Badge>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <img
+                        src={game.profileImageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${game.playerName || 'Guest'}`}
+                        alt={game.playerName}
+                        className="w-12 h-12 rounded-full border-2 border-primary/20 object-cover"
+                        onError={(e) => { e.currentTarget.src = "https://nosrc.net/100x100"; }}
+                      />
+                    </div>
+                    <div className="flex-grow">
+                      <h3 className="font-bold text-lg text-primary truncate">
+                        {game.playerName || "GUEST"}
+                      </h3>
+                      <p className="text-xs text-primary/60 uppercase tracking-tighter">
+                        {game.email || "GUEST ACCOUNT"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-black text-primary font-mono tracking-tighter">
+                        {game.score.toLocaleString()}
+                      </div>
+                      <div className="text-[10px] text-primary/40 uppercase font-medium">
+                        POINTS
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </li>
+            ))
+          ) : (
+            <div className="text-center py-20 opacity-50 italic text-xl">
+              No champions found yet. Be the first!
+            </div>
+          )}
         </ul>
       </div>
     </>
