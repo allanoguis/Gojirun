@@ -48,6 +48,8 @@ export default function Engine() {
   const [score, setScore] = useState(0);
   const [ground, setGround] = useState(GROUND);
   const [jumping, setJumping] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   // Refs for high-frequency game logic (avoids re-renders)
   const obstacleRef = useRef(GAME_WIDTH);
@@ -320,6 +322,23 @@ export default function Engine() {
     setGameStarted(true);
   };
 
+  const handleManualSave = async () => {
+    if (score === 0 || isSaving) return;
+    setIsSaving(true);
+    setSaveMessage("");
+    try {
+      await saveGameFromFrontend(score);
+      setSaveMessage("SAVED!");
+      setTimeout(() => setSaveMessage(""), 2000);
+    } catch (error) {
+      setSaveMessage("ERROR");
+      setTimeout(() => setSaveMessage(""), 2000);
+    } finally {
+      setIsSaving(false);
+      isSavingRef.current = false; // Reset the ref to allow future saves
+    }
+  };
+
   const GameOverMessage = () => (
     <div className="flex flex-col items-center gap-4">
       <span className="text-4xl text-primary font-bold uppercase antialiased tracking-widest">
@@ -345,9 +364,25 @@ export default function Engine() {
     <div className="grid relative w-full h-[100vh] p-4 lg:p-11 text-primary justify-center items-center select-none font-space overscroll-none">
       <div className="flex justify-between items-center mb-4 w-full px-2">
         <span className="font-bold text-2xl tracking-tighter">GOJIRUN</span>
-        <span className="font-mono text-xl bg-primary/10 px-4 py-1 rounded-md">
-          {score.toString().padStart(6, '0')}
-        </span>
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col items-end">
+            <span className="font-mono text-xl bg-primary/10 px-4 py-1 rounded-md">
+              {score.toString().padStart(6, '0')}
+            </span>
+            {saveMessage && (
+              <span className="text-[10px] font-bold text-primary animate-pulse absolute -bottom-4">
+                {saveMessage}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={handleManualSave}
+            disabled={isSaving || score === 0}
+            className="px-3 py-1 bg-primary text-secondary text-[10px] font-bold rounded-md hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 antialiased shadow-sm"
+          >
+            {isSaving ? "SAVING..." : "SAVE SCORE"}
+          </button>
+        </div>
       </div>
 
       <div className="relative group rounded-xl overflow-hidden shadow-2xl border-4 border-primary/20">
