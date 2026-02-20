@@ -11,6 +11,7 @@ import { Badge } from "./ui/badge";
 import { Medal } from "lucide-react";
 import { Trophy } from "lucide-react";
 import { Star } from "lucide-react";
+import Image from "next/image";
 
 import { getLeaderboard } from "@/lib/api-client";
 
@@ -75,12 +76,13 @@ export const Leaderboard = () => {
                         {index + 1}
                       </Badge>
                     </div>
-                    <div className="flex-shrink-0">
-                      <img
+                    <div className="flex-shrink-0 relative w-12 h-12">
+                      <Image
                         src={game.profileImageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${game.playerName || 'Guest'}`}
                         alt={game.playerName}
-                        className="w-12 h-12 rounded-full border-2 border-primary/20 object-cover"
-                        onError={(e) => { e.currentTarget.src = "https://nosrc.net/100x100"; }}
+                        fill
+                        className="rounded-full border-2 border-primary/20 object-cover"
+                        unoptimized
                       />
                     </div>
                     <div className="flex-grow">
