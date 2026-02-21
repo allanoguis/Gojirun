@@ -18,7 +18,7 @@ export default function ProfilePage() {
       : "";
   const uimage =
     isLoaded && isSignedIn && user
-      ? user.imageUrl
+      ? (userProfile?.profile_image_url || user.imageUrl)
       : guestAvatarUrl;
   const ucd =
     isLoaded && isSignedIn && user && user.createdAt
@@ -31,6 +31,7 @@ export default function ProfilePage() {
 
   const [highscore, setHighscore] = useState(0);
   const [pastGames, setPastGames] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfileData = useCallback(async () => {
@@ -44,6 +45,7 @@ export default function ProfilePage() {
       if (data) {
         setHighscore(data.highScore || 0);
         setPastGames(data.pastGames || []);
+        setUserProfile(data.user || null);
       }
     } catch (err) {
       console.error("Error fetching profile data:", err);
@@ -70,6 +72,15 @@ export default function ProfilePage() {
               width={100}
               height={100}
               className="relative w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-background object-cover shadow-xl"
+              onError={(e) => {
+                console.log('Profile avatar load error for:', uname, 'URL:', e.target.src);
+                // Fallback to guest avatar if database/Clerk avatar fails
+                e.target.src = guestAvatarUrl;
+              }}
+              onLoad={() => {
+                console.log('Profile avatar loaded successfully for:', uname, 'URL:', uimage);
+              }}
+              unoptimized
             />
           </div>
           <div className="text-center md:text-left">
