@@ -16,10 +16,6 @@ export default function ProfilePage() {
     isLoaded && isSignedIn && user && user.emailAddresses.length > 0
       ? user.emailAddresses[0].emailAddress
       : "";
-  const uimage =
-    isLoaded && isSignedIn && user
-      ? (userProfile?.profile_image_url || user.imageUrl)
-      : guestAvatarUrl;
   const ucd =
     isLoaded && isSignedIn && user && user.createdAt
       ? new Date(user.createdAt).toLocaleDateString()
@@ -33,6 +29,12 @@ export default function ProfilePage() {
   const [pastGames, setPastGames] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Calculate avatar URL after userProfile state is available
+  const uimage =
+    isLoaded && isSignedIn && user
+      ? (userProfile?.profile_image_url || user.imageUrl)
+      : guestAvatarUrl;
 
   const fetchProfileData = useCallback(async () => {
     if (!user?.id) return;
