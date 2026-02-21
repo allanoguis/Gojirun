@@ -351,6 +351,8 @@ export default function Engine() {
       setGround(GROUND);
       setGameOver(false);
       setGameStarted(false);
+      // Reset tank position to spawn point
+      obstacleRef.current = GAME_WIDTH;
       return;
     }
 
