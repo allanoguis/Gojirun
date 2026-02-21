@@ -70,7 +70,11 @@ const PlayerStats = ({
             height={40}
             className="w-full h-full rounded-full border-2 border-primary/20 object-cover"
             onError={(e) => {
+              console.log('Avatar load error for player:', player.playerName, 'URL:', e.target.src);
               e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.playerName || 'Guest'}`;
+            }}
+            onLoad={() => {
+              console.log('Avatar loaded successfully for player:', player.playerName, 'URL:', player.profileImageUrl);
             }}
             unoptimized
           />
@@ -133,7 +137,11 @@ const PlayerStats = ({
                 height={56}
                 className="w-full h-full rounded-full border-2 border-primary/20 object-cover ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all"
                 onError={(e) => {
+                  console.log('Avatar load error for player:', player.playerName, 'URL:', e.target.src);
                   e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.playerName || 'Guest'}`;
+                }}
+                onLoad={() => {
+                  console.log('Avatar loaded successfully for player:', player.playerName, 'URL:', player.profileImageUrl);
                 }}
                 unoptimized
               />
