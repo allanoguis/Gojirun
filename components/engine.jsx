@@ -124,9 +124,9 @@ export default function Engine() {
             createdAt: createdAt,
             lastSignInAt: lastSignInAt
           });
-          console.log("User synchronized successfully");
+          console.log("✅ User synchronized successfully");
         } catch (userSyncError) {
-          console.error("User synchronization failed:", userSyncError);
+          console.error("❌ User synchronization failed:", userSyncError.message);
           // We continue saving the game even if sync fails, as the score is priority
         }
 
@@ -152,11 +152,11 @@ export default function Engine() {
         };
 
         await saveGame(data);
-        console.log("Game saved successfully:", data);
+        console.log("✅ Game saved successfully:", { player: data.player, score: data.score, time: data.time });
         setSaveMessage("SAVED!");
         setTimeout(() => setSaveMessage(""), 3000);
       } catch (error) {
-        console.error("Error saving game data:", error);
+        console.error("❌ Error saving game data:", error.message);
         setSaveMessage("ERROR");
         setTimeout(() => setSaveMessage(""), 3000);
         throw error; // Re-throw so caller can handle
