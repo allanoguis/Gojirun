@@ -54,6 +54,7 @@ export default function Engine() {
   const [jumping, setJumping] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [gameStartTime, setGameStartTime] = useState(null);
 
   // Refs for high-frequency game logic (avoids re-renders)
   const obstacleRef = useRef(GAME_WIDTH);
@@ -137,11 +138,14 @@ export default function Engine() {
         else if (isSafari) browserName = "Safari";
         else if (isOpera) browserName = "Opera";
 
+        // Calculate game duration in seconds
+        const gameDuration = gameStartTime ? Math.round((Date.now() - gameStartTime) / 1000) : 0;
+
         const data = {
           player: playerID,
           playerName: fullname,
           score: finalScore,
-          time: new Date(),
+          time: gameDuration,
           ipAddress: ipAddress,
           deviceType: browserName,
           userAgent: userAgent,
@@ -160,7 +164,7 @@ export default function Engine() {
         isSavingRef.current = false;
       }
     },
-    [isLoaded, isSignedIn, user]
+    [isLoaded, isSignedIn, user, gameStartTime]
   );
 
   // Jump function
@@ -343,13 +347,6 @@ export default function Engine() {
     // If resetting from Game Over, just clean up and show the Start screen
     if (gameOver) {
       isSavingRef.current = false;
-      scoreRef.current = 0;
-      obstacleRef.current = GAME_WIDTH;
-      cloud1Ref.current = GAME_WIDTH;
-      cloud2Ref.current = GAME_WIDTH;
-      cloud3Ref.current = GAME_WIDTH;
-      groundRef.current = GROUND;
-
       setScore(0);
       setGround(GROUND);
       setGameOver(false);
@@ -357,7 +354,8 @@ export default function Engine() {
       return;
     }
 
-    // If starting from the Idle screen, just set started to true
+    // If starting from Idle screen, set started to true and record start time
+    setGameStartTime(Date.now());
     setGameStarted(true);
   };
 
