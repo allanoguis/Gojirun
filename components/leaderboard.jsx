@@ -15,9 +15,6 @@ import Image from "next/image";
 
 import { getLeaderboard } from "@/lib/api-client";
 
-// Leaderboard data comes from /api/leaderboard → Supabase. For the same list on localhost and production,
-// use the same SUPABASE_URL (and key) in both, or set NEXT_PUBLIC_LEADERBOARD_API_URL to the production API URL in .env.local.
-
 export const Leaderboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);

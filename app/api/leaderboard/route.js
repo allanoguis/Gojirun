@@ -3,7 +3,6 @@ import { GameService } from '@/lib/api-services';
 
 export const dynamic = 'force-dynamic';
 
-// Data is from Supabase (GameService.getLeaderboard). Same list on local + production only if both use the same SUPABASE_URL.
 export async function GET() {
     try {
         const leaderboard = await GameService.getLeaderboard();
