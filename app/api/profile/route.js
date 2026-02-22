@@ -8,12 +8,15 @@ export async function GET(request) {
     const userId = searchParams.get('userId');
     const { userId: authedUserId } = auth();
 
+    console.log('Profile API: userId query:', userId, 'authedUserId:', authedUserId);
+
     if (!userId) {
         return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
     }
 
-    // Security Check: Ensure the user is requesting their own profile
+    // Security Check: Ensure that the user is requesting their own profile
     if (userId !== '000000' && userId !== authedUserId) {
+        console.log('Profile API: Unauthorized - userId mismatch', { userId, authedUserId });
         return NextResponse.json({ message: 'Unauthorized profile access' }, { status: 403 });
     }
 

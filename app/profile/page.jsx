@@ -37,11 +37,13 @@ export default function ProfilePage() {
 
   const fetchProfileData = useCallback(async () => {
     const targetUserId = user?.id || "000000";
+    console.log('Profile page: user?.id =', user?.id, '=> targetUserId:', targetUserId);
     try {
       setLoading(true);
       const response = await fetch(`/api/profile?userId=${targetUserId}`);
       if (!response.ok) throw new Error('Failed to fetch profile data');
       const data = await response.json();
+      console.log('Profile page: fetched data', data);
 
       if (data) {
         setHighscore(data.highScore || 0);
