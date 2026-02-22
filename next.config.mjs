@@ -69,6 +69,7 @@ const nextConfig = {
     config.resolve.alias["@"] = path.resolve(".");
     return config;
   },
+  turbopack: {}, // Silence Turbopack warning; minimal config
 };
 
 export default nextConfig;
