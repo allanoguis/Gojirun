@@ -28,6 +28,12 @@ export async function GET(request) {
             );
         }
 
+        filteredLeaderboard = filteredLeaderboard.sort((a, b) => {
+            if ((b?.score ?? 0) !== (a?.score ?? 0)) return (b?.score ?? 0) - (a?.score ?? 0);
+            if ((a?.time ?? 0) !== (b?.time ?? 0)) return (a?.time ?? 0) - (b?.time ?? 0);
+            return 0;
+        });
+
         // Apply time filtering (simplified - would be better in database)
         if (timeFilter !== 'all') {
             const now = new Date();
