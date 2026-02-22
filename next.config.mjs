@@ -70,7 +70,7 @@ const nextConfig = {
     return config;
   },
   turbopack: {}, // Silence Turbopack warning; minimal config
-  // generateEtags: false, // Temporarily disabled for Vercel compatibility
+  generateEtags: false, // Bypass ETag caching to prevent digest mismatches
   // Force Vercel redeploy to pick up proxy.ts instead of stale _middleware.ts
 };
 
