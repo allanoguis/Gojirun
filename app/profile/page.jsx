@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
-import { fetchHighScore } from "@/lib/api-client";
 import Image from "next/image";
 
 const guestAvatarUrl =
@@ -37,10 +36,10 @@ export default function ProfilePage() {
       : guestAvatarUrl;
 
   const fetchProfileData = useCallback(async () => {
-    if (!user?.id) return;
+    const targetUserId = user?.id || "000000";
     try {
       setLoading(true);
-      const response = await fetch(`/api/profile?userId=${user.id}`);
+      const response = await fetch(`/api/profile?userId=${targetUserId}`);
       if (!response.ok) throw new Error('Failed to fetch profile data');
       const data = await response.json();
 
@@ -57,10 +56,16 @@ export default function ProfilePage() {
   }, [user?.id]);
 
   useEffect(() => {
+    if (!isLoaded) return;
     if (isSignedIn && user) {
       fetchProfileData();
+      return;
     }
-  }, [isSignedIn, user, fetchProfileData]);
+
+    if (!isSignedIn) {
+      fetchProfileData();
+    }
+  }, [isLoaded, isSignedIn, user, fetchProfileData]);
 
   return (
     <div className="flex flex-col items-center min-h-screen w-full pt-[calc(var(--nav-height)+2rem)] pb-20 px-4">
