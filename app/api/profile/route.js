@@ -21,11 +21,14 @@ export async function GET(request) {
     }
 
     try {
+        console.log('Profile API: Calling GameService.getProfileData with userId:', userId);
         const profileData = await GameService.getProfileData(userId);
-        console.log('Profile API returning data:', profileData);
+        console.log('Profile API: GameService returned data:', profileData);
         return NextResponse.json(profileData);
     } catch (error) {
-        console.error('Error in profile route:', error);
-        return NextResponse.json({ message: 'Error fetching profile data' }, { status: 500 });
+        console.error('Error in profile route - Full error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        return NextResponse.json({ message: 'Error fetching profile data', error: error.message }, { status: 500 });
     }
 }

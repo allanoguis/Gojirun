@@ -10,7 +10,13 @@ const guestAvatarUrl =
 export default function ProfilePage() {
   const { isLoaded, isSignedIn, user } = useUser();
 
-  console.log('Profile page: Clerk state', { isLoaded, isSignedIn, user, 'user.id:', user?.id, 'user.publicMetadata?.userId:', user?.publicMetadata?.userId });
+  console.log("Profile page: Clerk state", { isLoaded, isSignedIn, user });
+  console.log("Profile page: Full user object:", JSON.stringify(user, null, 2));
+  console.log("Profile page: user.id =", user?.id);
+  console.log("Profile page: user.publicMetadata?.userId =", user?.publicMetadata?.userId);
+  console.log("Profile page: user.externalId =", user?.externalId);
+  console.log("Profile page: user.username =", user?.username);
+  console.log("Profile page: user.primaryEmailAddress?.emailAddress =", user?.primaryEmailAddress?.emailAddress);
 
   const uname = isLoaded && isSignedIn && user ? user.firstName : "Guest";
   const uemail =
@@ -39,9 +45,9 @@ export default function ProfilePage() {
 
   const fetchProfileData = useCallback(async () => {
     const targetUserId = user?.id || user?.publicMetadata?.userId || "000000";
-    console.log('Profile page: user?.id =', user?.id, 'user.publicMetadata?.userId =', user?.publicMetadata?.userId, '=> targetUserId:', targetUserId);
+    console.log("Profile page: user?.id =", user?.id, "user.publicMetadata?.userId =", user?.publicMetadata?.userId, "=> targetUserId:", targetUserId);
     if (!targetUserId || targetUserId === "000000") {
-      console.warn('Profile page: user ID not available, skipping fetch');
+      console.warn("Profile page: user ID not available, skipping fetch");
       return;
     }
 
@@ -49,24 +55,24 @@ export default function ProfilePage() {
       setLoading(true);
       const response = await fetch(`/api/profile?userId=${targetUserId}`);
       if (!response.ok) {
-        console.error('Profile fetch failed:', response.status, response.statusText);
-        throw new Error('Failed to fetch profile data');
+        console.error("Profile fetch failed:", response.status, response.statusText);
+        throw new Error("Failed to fetch profile data");
       }
       const data = await response.json();
-      console.log('Profile page: fetched data', data);
+      console.log("Profile page: fetched data", data);
 
       if (data) {
         setHighscore(data.highScore || 0);
         setPastGames(data.pastGames || []);
         setUserProfile(data.user || null);
       } else {
-        console.warn('Profile page: API returned no data, using fallbacks');
+        console.warn("Profile page: API returned no data, using fallbacks");
         setHighscore(0);
         setPastGames([]);
         setUserProfile(null);
       }
     } catch (err) {
-      console.error('Error fetching profile data:', err);
+      console.error("Error fetching profile data:", err);
       setHighscore(0);
       setPastGames([]);
       setUserProfile(null);
@@ -102,12 +108,12 @@ export default function ProfilePage() {
               height={100}
               className="relative w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-background object-cover shadow-xl"
               onError={(e) => {
-                console.log('Profile avatar load error for:', uname, 'URL:', e.target.src);
+                console.log("Profile avatar load error for:", uname, "URL:", e.target.src);
                 // Fallback to guest avatar if database/Clerk avatar fails
                 e.target.src = guestAvatarUrl;
               }}
               onLoad={() => {
-                console.log('Profile avatar loaded successfully for:', uname, 'URL:', uimage);
+                console.log("Profile avatar loaded successfully for:", uname, "URL:", uimage);
               }}
               unoptimized
             />
