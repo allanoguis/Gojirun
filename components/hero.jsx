@@ -1,9 +1,9 @@
 "use client"; // Marks this component as client-side
 
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { useUser } from "@clerk/nextjs"; // Clerk's useUser hook
-import { motion } from "framer-motion"; // Added useAnimation
+import { UserButton, useUser } from "@clerk/nextjs";
+import { motion } from "framer-motion";
+import StartButton from "./ui/start-button";
 import Image from "next/image";
 import herogojira from "@/assets/images/hero/herogojira.png";
 import herotank from "@/assets/images/hero/herotank.png";
@@ -89,13 +89,12 @@ export default function Hero() {
             A 2D platformer inspired by the classic Chrome T-Rex run.
           </p>
 
-          <Button
-            asChild
-            className="px-8 py-6 bg-gradient-to-r from-accent to-pink-600 text-lg font-bold rounded-full hover:animate-ping-once transition-transform duration-1000 shadow-lg animate-bounce cursor-pointer group"
+          <StartButton
             onClick={Start}
+            className="text-lg font-bold"
           >
-            <span className="group-hover:scale-105 transition-transform">Play Now</span>
-          </Button>
+            Play Now
+          </StartButton>
         </motion.div>
 
         {/* gojira */}

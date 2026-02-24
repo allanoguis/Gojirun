@@ -5,7 +5,7 @@ import Navigation from "../components/navigation";
 
 export const metadata = {
   author: "Allan Oguis",
-  title: "Hacktoberfest 2024",
+  title: "The Gojirun Project",
   description:
     "Gojirun is a 2D platformer game inspired by the classic T-Rex run from Chrome. This project is dedicated to Hacktoberfest 2024 and all its contributors.",
   icons: {
