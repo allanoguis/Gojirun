@@ -79,7 +79,7 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: isLoaded ? 1 : 0 }}
           transition={{ duration: 0.5 }}
-          className="relative z-10 text-center px-4 flex flex-col justify-start items-center pt-20 md:pt-24 lg:pt-32"
+          className="relative z-10 text-center px-4 flex flex-col justify-start items-center pt-28 md:pt-24 lg:pt-32"
         >
           <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 sm:mb-5 md:mb-6 uppercase text-balance">
             Welcome to Gojirun, {username}!
