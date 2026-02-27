@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Badge } from "./ui/badge";
 import { Trophy } from "lucide-react";
 import { getLeaderboard } from "@/lib/api-client";
+import { subscribeToLeaderboard } from "@/lib/supabase-realtime";
 import { LeaderboardSkeleton } from "./ui/skeleton";
 import LeaderboardFilters from "./ui/leaderboard-filters";
 import Pagination from "./ui/pagination";
@@ -12,6 +13,7 @@ export const Leaderboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [realtimeEnabled, setRealtimeEnabled] = useState(false);
   const [filters, setFilters] = useState({
     search: '',
     timeFilter: 'all'
@@ -58,6 +60,34 @@ export const Leaderboard = () => {
       setLoading(false);
     }
   }, [filters]);
+
+  // Handle real-time leaderboard updates
+  const handleRealtimeUpdate = useCallback(({ type, payload }) => {
+    console.log('Leaderboard event', type, payload);
+    
+    // Refresh the current page data when changes occur
+    fetchLeaderboard(pagination.currentPage, false);
+  }, [pagination.currentPage, fetchLeaderboard]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    let unsubscribe;
+    
+    const setupRealtime = async () => {
+      unsubscribe = await subscribeToLeaderboard(handleRealtimeUpdate);
+      if (unsubscribe) {
+        setRealtimeEnabled(true);
+      }
+    };
+    
+    setupRealtime();
+    
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [handleRealtimeUpdate]);
 
   // Initial load
   useEffect(() => {
@@ -117,10 +147,17 @@ export const Leaderboard = () => {
       <div className="flex flex-col w-full min-h-screen items-center text-white pt-[calc(var(--nav-height)+4rem)] pb-20">
         {/* Header */}
         <div className="mb-8 text-center px-4">
-          <Badge variant="default" className="text-xl md:text-2xl px-6 py-2 shadow-lg mb-4">
-            <Trophy className="w-6 h-6 mr-2" />
-            Top Ranking Players
-          </Badge>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Badge variant="default" className="text-xl md:text-2xl px-6 py-2 shadow-lg">
+              <Trophy className="w-6 h-6 mr-2" />
+              Top Ranking Players
+            </Badge>
+            {realtimeEnabled && (
+              <Badge variant="secondary" className="text-xs px-2 py-1 animate-pulse">
+                🟢 Live
+              </Badge>
+            )}
+          </div>
           <p className="text-primary-secondary text-sm uppercase tracking-[0.2em] antialiased">
             Global Hall of Fame
           </p>
