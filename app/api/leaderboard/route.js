@@ -46,16 +46,36 @@ export async function GET(request) {
             }
         });
 
+        // Get user profile data for all players
+        const userIds = [...new Set(Object.values(playerMaxScores).map(game => game.user_id).filter(id => id && id !== '000000'))];
+        
+        let userProfiles = {};
+        if (userIds.length > 0) {
+            const { data: users, error: userError } = await supabaseAdmin
+                .from('users')
+                .select('user_id, email, profile_image_url')
+                .in('user_id', userIds);
+            
+            if (!userError && users) {
+                users.forEach(user => {
+                    userProfiles[user.user_id] = user;
+                });
+            }
+        }
+
         // Convert to leaderboard format
-        let leaderboard = Object.values(playerMaxScores).map(game => ({
-            player_id: game.user_id,
-            email: game.user?.email || 'guest@gojirun.local',
-            player_name: game.player_name,
-            profile_image_url: game.user?.profile_image_url || `https://api.dicebear.com/7.x/avataaars/png?seed=${game.player_name}&size=200`,
-            score: game.score,
-            best_time: playerBestTimes[game.player_name],
-            games_played: playerGameCounts[game.player_name]
-        }));
+        let leaderboard = Object.values(playerMaxScores).map(game => {
+            const userProfile = userProfiles[game.user_id];
+            return {
+                player_id: game.user_id,
+                email: userProfile?.email || 'guest@gojirun.local',
+                player_name: game.player_name,
+                profile_image_url: userProfile?.profile_image_url || `https://api.dicebear.com/7.x/avataaars/png?seed=${game.player_name}&size=200`,
+                score: game.score,
+                best_time: playerBestTimes[game.player_name],
+                games_played: playerGameCounts[game.player_name]
+            };
+        });
 
         // Apply search filter
         if (search) {

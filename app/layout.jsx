@@ -2,6 +2,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { ClerkProvider } from "@clerk/nextjs";
 import Navigation from "../components/navigation";
+import UserProfileSync from "../components/user-profile-sync";
 
 export const metadata = {
   author: "Allan Oguis",
@@ -26,6 +27,7 @@ export default function RootLayout({ children }) {
           <ThemeProvider attribute="class">
             <>
               <Navigation />
+              <UserProfileSync />
             </>
             {children}
           </ThemeProvider>
