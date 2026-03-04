@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-time Debug Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 5px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Real-time Debug Test</h1>
+    <div>
+        <button onclick="testSubscription()">Test Subscription</button>
+        <button onclick="sendTestBroadcast()">Send Test Broadcast</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+    <div id="logs"></div>
+
+    <script>
+        let currentChannel = null;
+        let supabase;
+        
+        // Make functions globally available
+        window.log = function(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            logs.appendChild(div);
+            logs.scrollTop = logs.scrollHeight;
+        };
+        
+        window.clearLogs = function() {
+            document.getElementById('logs').innerHTML = '';
+        };
+        
+        window.testSubscription = async function() {
+            try {
+                log('🔍 Testing real-time subscription...', 'info');
+                
+                // Remove existing channel if any
+                if (currentChannel) {
+                    log('🧹 Removing existing channel...', 'warning');
+                    supabase.removeChannel(currentChannel);
+                }
+                
+                // Create new subscription
+                currentChannel = supabase.channel('leaderboard:global', {
+                    config: {
+                        broadcast: { ack: true },
+                    },
+                });
+
+                // Handle highscore_update events
+                currentChannel.on('broadcast', { event: 'highscore_update' }, (payload) => {
+                    log('🎉 highscore_update received: ' + JSON.stringify(payload), 'success');
+                });
+
+                // Handle all broadcast events (for debugging)
+                currentChannel.on('broadcast', { event: '*' }, (payload) => {
+                    log('📡 broadcast (all): ' + JSON.stringify(payload), 'info');
+                });
+
+                // Subscribe with status handling
+                currentChannel.subscribe((status, err) => {
+                    log(`📊 Subscription status: ${status}`, status === 'SUBSCRIBED' ? 'success' : 'warning');
+                    if (err) {
+                        log('❌ Subscription error: ' + err.message, 'error');
+                    }
+                });
+                
+                log('✅ Subscription setup complete', 'success');
+                
+            } catch (error) {
+                log('❌ Subscription failed: ' + error.message, 'error');
+            }
+        };
+        
+        window.sendTestBroadcast = async function() {
+            try {
+                log('📤 Sending test broadcast...', 'info');
+                
+                const response = await fetch('/api/test-broadcast', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        testMessage: 'Manual test from debug page'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    log('✅ Test broadcast sent successfully', 'success');
+                    log('📤 Payload: ' + JSON.stringify(result.payload), 'info');
+                } else {
+                    log('❌ Test broadcast failed: ' + result.error, 'error');
+                }
+                
+            } catch (error) {
+                log('❌ Send broadcast failed: ' + error.message, 'error');
+            }
+        };
+        
+        // Initialize Supabase client
+        window.initSupabase = async function() {
+            try {
+                // Try to get Supabase config from the current page's environment
+                const response = await fetch('/api/debug-supabase-config');
+                const config = await response.json();
+                
+                if (config.success) {
+                    supabase = createClient(config.url, config.anonKey);
+                    log('✅ Supabase client initialized', 'success');
+                    log('🔗 URL: ' + config.url, 'info');
+                } else {
+                    log('❌ Failed to get Supabase config', 'error');
+                }
+            } catch (error) {
+                log('❌ Supabase initialization failed: ' + error.message, 'error');
+            }
+        };
+        
+        // Auto-test on page load
+        window.addEventListener('load', async () => {
+            log('🚀 Debug page loaded', 'success');
+            await initSupabase();
+            if (supabase) {
+                testSubscription();
+            }
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (currentChannel && supabase) {
+                supabase.removeChannel(currentChannel);
+            }
+        });
+    </script>
+</body>
+</html>

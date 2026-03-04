@@ -108,38 +108,42 @@ export async function POST(request) {
             }
         }
 
-        // Broadcast the update for real-time leaderboard using best practices
+        // Broadcast the update using the Edge Function (recommended pattern)
         try {
             const broadcastPayload = {
-                op: 'INSERT',
-                table: 'games',
-                new: {
-                    user_id: player,
+                user_id: player,
+                score: score,
+                metadata: {
                     player_name: playerName,
-                    score: score,
+                    ip_address: ipAddress,
+                    device_type: deviceType,
+                    user_agent: userAgent,
                     created_at: new Date().toISOString()
-                },
-                old: null
+                }
             };
             
-            // Broadcast to public:leaderboard channel with highscore_update event
-            const channel = supabaseAdmin.channel('public:leaderboard', {
-                config: {
-                    private: false,
-                    broadcast: { ack: true }
-                }
+            // Call the Edge Function for broadcasting
+            const edgeFunctionUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/broadcast-highscore`;
+            
+            const broadcastResponse = await fetch(edgeFunctionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+                },
+                body: JSON.stringify(broadcastPayload)
             });
             
-            await channel.send({
-                type: 'broadcast',
-                event: 'highscore_update',
-                payload: broadcastPayload
-            });
-            
-            console.log('[savegame] highscore_update broadcast sent successfully');
+            if (broadcastResponse.ok) {
+                const result = await broadcastResponse.json();
+                console.log('[savegame] Edge Function broadcast successful:', result);
+            } else {
+                const error = await broadcastResponse.text();
+                console.error('[savegame] Edge Function broadcast failed:', error);
+            }
             
         } catch (broadcastError) {
-            console.log('[savegame] Real-time broadcast failed:', broadcastError.message);
+            console.error('[savegame] Real-time broadcast failed:', broadcastError);
         }
 
         return NextResponse.json({ 
@@ -151,7 +155,14 @@ export async function POST(request) {
                 score: savedGame.score,
                 createdAt: savedGame.created_at
             }
-        }, { status: 201 });
+        }, {
+            status: 201,
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
         
     } catch (error) {
         console.error('Error in savegame route:', {

@@ -102,7 +102,14 @@ export async function POST(request) {
         return NextResponse.json({ 
             message: 'User saved successfully',
             user: savedUser
-        }, { status: savedUser?.user_id ? 201 : 200 });
+        }, {
+            status: savedUser?.user_id ? 201 : 200,
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
         
     } catch (error) {
         console.error('Error in users route:', {

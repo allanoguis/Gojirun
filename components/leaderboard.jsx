@@ -63,13 +63,17 @@ export const Leaderboard = () => {
 
   // Handle real-time leaderboard updates
   const handleRealtimeUpdate = useCallback((payload) => {
-    console.log('Leaderboard event received:', payload);
+    console.log('🎮 [Leaderboard] Real-time event received:', payload);
     
-    // The new payload structure: { op: 'INSERT'|'UPDATE'|'DELETE', table: 'games', new: {...}|null, old: {...}|null }
-    if (payload && (payload.op === 'INSERT' || payload.op === 'UPDATE' || payload.op === 'DELETE')) {
-      console.log(`Leaderboard ${payload.op} operation detected, refreshing data...`);
+    // Edge Function payload format: { user_id, score, metadata }
+    if (payload && payload.user_id && payload.score) {
+      console.log(`🔄 [Leaderboard] High score update detected: ${payload.metadata?.player_name || 'Unknown'} - ${payload.score}`);
+      console.log('📊 [Leaderboard] Current page:', pagination.currentPage);
+      
       // Refresh the current page data when changes occur
       fetchLeaderboard(pagination.currentPage, false);
+    } else {
+      console.log('⚠️ [Leaderboard] Unhandled payload type:', payload);
     }
   }, [pagination.currentPage, fetchLeaderboard]);
 

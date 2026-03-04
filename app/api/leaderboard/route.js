@@ -31,6 +31,13 @@ export async function GET(request) {
 
         if (gamesError) throw gamesError;
 
+        console.log('[Leaderboard API] Total games fetched:', allGames?.length || 0);
+        console.log('[Leaderboard API] Latest 3 games:', allGames?.slice(0, 3).map(g => ({
+            name: g.player_name,
+            score: g.score,
+            created: g.created_at
+        })));
+
         // Aggregate data by player
         const playerMaxScores = {};
         const playerGameCounts = {};
@@ -115,7 +122,13 @@ export async function GET(request) {
                     applied: search || timeFilter !== 'all'
                 }
             }
-        }, { headers });
+        }, { 
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
     } catch (error) {
         console.error('Error in leaderboard route:', error);
         return NextResponse.json({ 

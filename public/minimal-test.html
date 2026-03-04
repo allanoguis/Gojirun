@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minimal Frontend Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #fff; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #10b981; }
+        .error { background: #ef4444; }
+        .warning { background: #f59e0b; }
+        .info { background: #3b82f6; }
+        .leaderboard { background: #2a2a2a; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .player { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #444; }
+        .player:last-child { border-bottom: none; }
+        .rank { font-weight: bold; color: #fbbf24; }
+        .name { flex: 1; margin: 0 20px; }
+        .score { color: #10b981; font-weight: bold; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #2563eb; }
+        .logs { background: #1f1f1f; padding: 15px; border-radius: 8px; margin: 20px 0; max-height: 300px; overflow-y: auto; font-size: 12px; }
+        .log-success { color: #10b981; }
+        .log-error { color: #ef4444; }
+        .log-info { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>🎮 Minimal Frontend Test</h1>
+    
+    <div class="status info">
+        <strong>📊 Testing:</strong> Leaderboard API Display (No External Dependencies)
+    </div>
+
+    <div>
+        <button onclick="testLeaderboardAPI()">Test Leaderboard API</button>
+        <button onclick="sendTestBroadcast()">Send Test Broadcast</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+
+    <div id="status" class="status info">Ready to test...</div>
+
+    <div class="leaderboard">
+        <h3>🏆 Current Leaderboard</h3>
+        <div id="leaderboard-content">
+            <div class="player">
+                <span class="rank">Loading...</span>
+                <span class="name">Please click "Test Leaderboard API"</span>
+                <span class="score">-</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="logs">
+        <h3>📋 Activity Logs</h3>
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        let logs = [];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `<div class="log-${type}">[${timestamp}] ${message}</div>`;
+            logs.unshift(logEntry);
+            if (logs.length > 50) logs.pop();
+            document.getElementById('logs').innerHTML = logs.join('');
+        }
+
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.className = `status ${type}`;
+            statusEl.innerHTML = `<strong>Status:</strong> ${message}`;
+        }
+
+        function displayLeaderboard(data) {
+            const content = document.getElementById('leaderboard-content');
+            
+            if (!data || !data.leaderboard || data.leaderboard.length === 0) {
+                content.innerHTML = '<div class="player"><span class="rank">-</span><span class="name">No players found</span><span class="score">-</span></div>';
+                return;
+            }
+
+            content.innerHTML = data.leaderboard.map((player, index) => `
+                <div class="player">
+                    <span class="rank">#${(data.pagination?.page - 1) * 10 + index + 1}</span>
+                    <span class="name">${player.player_name || 'Unknown'}</span>
+                    <span class="score">${player.score?.toLocaleString() || 0}</span>
+                </div>
+            `).join('');
+        }
+
+        async function testLeaderboardAPI() {
+            updateStatus('Testing Leaderboard API...', 'info');
+            addLog('🔄 Fetching leaderboard data...', 'info');
+
+            try {
+                const response = await fetch('/api/leaderboard?page=1&limit=10');
+                const data = await response.json();
+
+                if (data.success) {
+                    addLog(`✅ Leaderboard API success: ${data.data.leaderboard.length} players`, 'success');
+                    addLog(`📊 Total players: ${data.data.pagination?.total || 0}`, 'info');
+                    addLog(`🏆 Top player: ${data.data.leaderboard[0]?.player_name} (${data.data.leaderboard[0]?.score})`, 'info');
+                    addLog(`🎯 Response time: ${response.headers.get('x-response-time') || 'N/A'}`, 'info');
+                    displayLeaderboard(data.data);
+                    updateStatus('Leaderboard loaded successfully', 'success');
+                } else {
+                    addLog(`❌ Leaderboard API failed: ${data.error}`, 'error');
+                    updateStatus('Leaderboard API failed', 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Leaderboard API error: ${error.message}`, 'error');
+                updateStatus('Leaderboard API error', 'error');
+            }
+        }
+
+        async function sendTestBroadcast() {
+            updateStatus('Sending test broadcast...', 'info');
+            addLog('📤 Sending test broadcast...', 'info');
+
+            try {
+                const response = await fetch('/api/test-broadcast', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ testMessage: 'Minimal frontend test' })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog(`✅ Test broadcast sent: ${result.payload.metadata.player_name}`, 'success');
+                    addLog(`🎯 Broadcast ID: ${result.edgeFunctionResult?.payload?.broadcast_id}`, 'info');
+                    addLog(`📡 Supabase Response: ${result.edgeFunctionResult?.supabase_response}`, 'info');
+                    addLog(`⏰ Timestamp: ${result.timestamp}`, 'info');
+                    updateStatus('Test broadcast sent successfully', 'success');
+                    
+                    // Refresh leaderboard after broadcast
+                    addLog('🔄 Refreshing leaderboard in 2 seconds...', 'info');
+                    setTimeout(testLeaderboardAPI, 2000);
+                } else {
+                    addLog(`❌ Test broadcast failed: ${result.error}`, 'error');
+                    updateStatus('Test broadcast failed', 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Test broadcast error: ${error.message}`, 'error');
+                updateStatus('Test broadcast error', 'error');
+            }
+        }
+
+        function clearLogs() {
+            logs = [];
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            addLog('🚀 Minimal Frontend Test loaded', 'info');
+            addLog('📦 No external dependencies - pure JavaScript', 'success');
+            addLog('🔗 Ready to test API endpoints', 'info');
+            // Auto-test leaderboard API
+            setTimeout(testLeaderboardAPI, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -20,6 +20,12 @@ export async function GET(request) {
                 all_games: allGames || [],
                 count: allGames?.length || 0
             }
+        }, {
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
         });
     } catch (error) {
         console.error('Error in all games route:', error);
