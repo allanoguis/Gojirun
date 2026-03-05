@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Alert Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Save Game Alert Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Scenarios</h2>
+        <p>1. Play the game and get a score</p>
+        <p>2. Let the game end (hit an obstacle)</p>
+        <p>3. Click "SAVE SCORE" button</p>
+        <p>4. Observe the alert behavior:</p>
+        <ul>
+            <li>✅ Success: Green alert with checkmark, shows score saved</li>
+            <li>❌ Error: Red alert with X, shows error message</li>
+            <li>🔔 Auto-dismiss: Alert disappears after 4 seconds</li>
+            <li>❌ Manual dismiss: Click X to close immediately</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Expected Alert Behavior</h2>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1; padding: 15px; background-color: #d4edda; border-radius: 5px;">
+                <h3>✅ Success Alert</h3>
+                <p><strong>Score Saved!</strong></p>
+                <p>Your score of 1234 has been saved to leaderboard.</p>
+            </div>
+            <div style="flex: 1; padding: 15px; background-color: #f8d7da; border-radius: 5px;">
+                <h3>❌ Error Alert</h3>
+                <p><strong>Save Failed</strong></p>
+                <p>There was an error saving your score. Please try again.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Quick Links</h2>
+        <button onclick="window.open('/','_blank')">🎮 Play Game</button>
+        <button onclick="window.open('/test-save-game.html','_blank')">🧪 Test Save API</button>
+    </div>
+
+    <script>
+        console.log('Alert test page loaded. Ready to test save functionality.');
+    </script>
+</body>
+</html>

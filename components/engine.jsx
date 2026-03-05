@@ -56,6 +56,8 @@ export default function Engine() {
   const [saveMessage, setSaveMessage] = useState("");
   const [gameStartTime, setGameStartTime] = useState(null);
   const [hasSavedSuccessfully, setHasSavedSuccessfully] = useState(false);
+  const [showSaveAlert, setShowSaveAlert] = useState(false);
+  const [saveAlertType, setSaveAlertType] = useState(""); // "success" or "error"
 
   // Refs for high-frequency game logic (avoids re-renders)
   const obstacleRef = useRef(GAME_WIDTH);
@@ -67,6 +69,17 @@ export default function Engine() {
   const groundRef = useRef(GROUND);
 
   const { isLoaded, isSignedIn, user } = useUser();
+
+  // Alert function for save feedback
+  const showSaveAlertMessage = useCallback((type, message) => {
+    setSaveAlertType(type);
+    setShowSaveAlert(true);
+    
+    // Auto-hide alert after 4 seconds
+    setTimeout(() => {
+      setShowSaveAlert(false);
+    }, 4000);
+  }, []);
 
   // Audio/Image Refs
   const canvasRef = useRef(null);
@@ -156,17 +169,19 @@ export default function Engine() {
         console.log("✅ Game saved successfully:", { player: data.player, score: data.score, time: data.time });
         setSaveMessage("SAVED!");
         setHasSavedSuccessfully(true);
+        showSaveAlertMessage("success", `Score ${score} saved successfully!`);
         setTimeout(() => setSaveMessage(""), 3000);
       } catch (error) {
         console.error("❌ Error saving game data:", error.message);
         setSaveMessage("ERROR");
+        showSaveAlertMessage("error", `Failed to save score: ${error.message}`);
         setTimeout(() => setSaveMessage(""), 3000);
-        throw error; // Re-throw so caller can handle
+        // Don't re-throw error here - let handleManualSave handle it
       } finally {
         isSavingRef.current = false;
       }
     },
-    [isLoaded, isSignedIn, user, gameStartTime]
+    [isLoaded, isSignedIn, user, gameStartTime, showSaveAlertMessage]
   );
 
   // Jump function
@@ -366,17 +381,21 @@ export default function Engine() {
     setHasSavedSuccessfully(false);
   };
 
-  const handleManualSave = async () => {
+  const handleManualSave = useCallback(async () => {
     if (score === 0 || isSaving) return;
     setIsSaving(true);
     try {
       await saveGameFromFrontend(score);
     } catch (error) {
       // Error is already logged and displayed by saveGameFromFrontend
+      // Even if save fails, we should mark as attempted to hide the button
+      console.error("Save failed, marking as attempted:", error);
+      setHasSavedSuccessfully(true); // Hide button even on error to prevent confusion
+      showSaveAlertMessage("error", "Save attempt completed. Check console for details.");
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [showSaveAlertMessage]);
 
   const GameOverMessage = () => (
     <div className="flex flex-col items-center gap-2 md:gap-4">
@@ -401,6 +420,48 @@ export default function Engine() {
 
   return (
     <div className="flex flex-col relative w-full min-h-screen p-4 lg:p-11 text-primary justify-center items-center select-none font-space overscroll-none">
+      {/* Save Alert */}
+      {showSaveAlert && (
+        <div className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg border animate-in slide-in-from-right duration-300 max-w-sm ${
+          saveAlertType === "success" 
+            ? "bg-green-500 text-white border-green-600" 
+            : "bg-red-500 text-white border-red-600"
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0">
+              {saveAlertType === "success" ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">
+                {saveAlertType === "success" ? "Score Saved!" : "Save Failed"}
+              </p>
+              <p className="text-sm opacity-90">
+                {saveAlertType === "success" 
+                  ? `Your score of ${score} has been saved to the leaderboard.` 
+                  : "There was an error saving your score. Please try again."
+                }
+              </p>
+            </div>
+            <button
+              onClick={() => setShowSaveAlert(false)}
+              className="flex-shrink-0 ml-4 text-white hover:opacity-80 transition-opacity"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col-reverse md:flex-row justify-between items-center w-full max-w-[1000px] gap-4 px-2 py-2">
         <div className="flex justify-center gap-4 md:gap-8 text-[10px] md:text-sm font-medium text-primary/60 uppercase tracking-widest antialiased">
           <div className="hidden md:flex items-center gap-2">

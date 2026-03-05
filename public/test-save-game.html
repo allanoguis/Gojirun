@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Save Game Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Save Game API Test</h1>
+    
+    <div>
+        <button onclick="testSaveGame()">Test Save Game API</button>
+        <button onclick="testEnvironment()">Check Environment</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+        }
+
+        async function testSaveGame() {
+            addResult('Testing save game API...', 'info');
+            
+            try {
+                const testData = {
+                    player: '000000',
+                    playerName: 'Test User',
+                    score: 100,
+                    time: 60,
+                    ipAddress: '127.0.0.1',
+                    deviceType: 'Test Browser',
+                    userAgent: navigator.userAgent
+                };
+
+                const response = await fetch('/api/savegame', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    addResult(`✅ Save successful: ${JSON.stringify(result)}`, 'success');
+                } else {
+                    const error = await response.json();
+                    addResult(`❌ Save failed: ${error.message || response.statusText}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        function testEnvironment() {
+            addResult('Checking environment variables...', 'info');
+            
+            // Check if we can access the API
+            fetch('/api/savegame', {
+                method: 'OPTIONS'
+            }).then(response => {
+                if (response.ok) {
+                    addResult('✅ API endpoint is accessible', 'success');
+                } else {
+                    addResult(`❌ API endpoint error: ${response.status}`, 'error');
+                }
+            }).catch(error => {
+                addResult(`❌ API endpoint not accessible: ${error.message}`, 'error');
+            });
+
+            // Check environment info
+            addResult(`User Agent: ${navigator.userAgent}`, 'info');
+            addResult(`Current URL: ${window.location.href}`, 'info');
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Auto-run environment check on load
+        window.addEventListener('load', testEnvironment);
+    </script>
+</body>
+</html>
