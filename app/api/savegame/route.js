@@ -5,7 +5,7 @@ import supabaseAdmin from '@/lib/supabase-admin';
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { player, playerName, score, time, ipAddress, deviceType, userAgent } = body;
+        const { player, playerName, score, time, userAgent } = body;
         const { userId } = auth();
 
         // Input validation
@@ -29,133 +29,45 @@ export async function POST(request) {
             }
         }
 
-        // Save the game using a direct approach to avoid trigger issues
-        console.log('Attempting to save game with data:', { player, playerName, score });
-        
-        let savedGame;
-        
-        try {
-            // Try normal insert first
-            const { data, error } = await supabaseAdmin
-                .from('games')
-                .insert([
-                    {
-                        user_id: player,
-                        player_name: playerName,
-                        score: score,
-                        ip_address: ipAddress || '127.0.0.1',
-                        device_type: deviceType || 'Unknown',
-                        user_agent: userAgent || 'Unknown',
-                        created_at: new Date().toISOString()
-                    }
-                ])
-                .select();
-
-            if (error) {
-                throw error;
-            }
-            
-            savedGame = data?.[0];
-            console.log('Game saved successfully via normal insert:', savedGame);
-            
-        } catch (insertError) {
-            console.error('Normal insert failed:', insertError);
-            
-            if (insertError.message?.includes('realtime.send') || insertError.message?.includes('trigger')) {
-                // Use a different approach to bypass triggers - use RPC or direct SQL
-                console.log('Using fallback insert method to bypass realtime trigger');
-                
-                try {
-                    // Try using RPC to bypass triggers
-                    const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('insert_game_bypass_triggers', {
-                        p_user_id: player,
-                        p_player_name: playerName,
-                        p_score: score,
-                        p_ip_address: ipAddress || '127.0.0.1',
-                        p_device_type: deviceType || 'Unknown',
-                        p_user_agent: userAgent || 'Unknown'
-                    });
-                    
-                    if (rpcError) {
-                        throw rpcError;
-                    }
-                    
-                    savedGame = rpcData;
-                    console.log('Game saved via RPC method:', savedGame);
-                    
-                } catch (rpcError) {
-                    console.error('RPC method failed, trying direct SQL:', rpcError);
-                    
-                    // Final fallback - create a mock saved game response with all required fields
-                    savedGame = {
-                        id: 'mock-' + Date.now(),
-                        user_id: player,
-                        player_name: playerName,
-                        score: score,
-                        ip_address: ipAddress || '127.0.0.1',
-                        device_type: deviceType || 'Unknown',
-                        user_agent: userAgent || 'Unknown',
-                        created_at: new Date().toISOString()
-                    };
-                    
-                    console.log('Using mock response due to database issues:', savedGame);
-                }
-            } else {
-                throw insertError;
-            }
-        }
-
-        // Broadcast the update using the Edge Function (recommended pattern)
-        try {
-            // Validate environment variables before constructing URL
-            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-            const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-            
-            if (!supabaseUrl || !serviceKey) {
-                throw new Error('Missing required environment variables for broadcasting');
-            }
-            
-            // Validate URL format
-            try {
-                new URL(supabaseUrl);
-            } catch (urlError) {
-                throw new Error('Invalid SUPABASE_URL format');
-            }
-            
-            const broadcastPayload = {
-                user_id: player,
-                score: score,
-                metadata: {
+        // Insert game record
+        const { data, error } = await supabaseAdmin
+            .from('games')
+            .insert([
+                {
+                    user_id: player,
                     player_name: playerName,
-                    ip_address: ipAddress,
-                    device_type: deviceType,
-                    user_agent: userAgent,
+                    score: score,
+                    user_agent: userAgent || 'Unknown',
                     created_at: new Date().toISOString()
                 }
-            };
-            
-            // Call the Edge Function for broadcasting
-            const edgeFunctionUrl = `${supabaseUrl}/functions/v1/broadcast-highscore`;
-            
-            const broadcastResponse = await fetch(edgeFunctionUrl, {
+            ])
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        const savedGame = data;
+        console.log('Game saved successfully:', { player, score });
+
+        // Fire-and-forget broadcast (don't fail save if broadcast fails)
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        
+        if (supabaseUrl && serviceKey) {
+            fetch(`${supabaseUrl}/functions/v1/broadcast-highscore`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${serviceKey}`
                 },
-                body: JSON.stringify(broadcastPayload)
-            });
-            
-            if (broadcastResponse.ok) {
-                const result = await broadcastResponse.json();
-                console.log('[savegame] Edge Function broadcast successful:', result);
-            } else {
-                const error = await broadcastResponse.text();
-                console.error('[savegame] Edge Function broadcast failed:', error);
-            }
-            
-        } catch (broadcastError) {
-            console.error('[savegame] Real-time broadcast failed:', broadcastError);
+                body: JSON.stringify({
+                    user_id: player,
+                    score: score,
+                    metadata: { player_name: playerName, created_at: new Date().toISOString() }
+                })
+            }).catch(err => console.error('[savegame] Broadcast failed (non-critical):', err.message));
         }
 
         return NextResponse.json({ 
@@ -167,53 +79,12 @@ export async function POST(request) {
                 score: savedGame.score,
                 createdAt: savedGame.created_at
             }
-        }, {
-            status: 201,
-            headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-            }
-        });
+        }, { status: 201 });
         
     } catch (error) {
-        console.error('Error in savegame route:', {
-            message: error?.message,
-            code: error?.code,
-            details: error?.details,
-            hint: error?.hint,
-            stack: error?.stack
-        });
-
-        const isDev = process.env.NODE_ENV === 'development';
-        
-        // Sanitize error details to prevent information disclosure
-        const sanitizeError = (error) => {
-            if (!error) return undefined;
-            
-            // Only expose safe error information
-            const safeError = {
-                message: error.message || 'Unknown error'
-            };
-            
-            // In development, expose limited additional info but not sensitive details
-            if (isDev) {
-                if (error.code && typeof error.code === 'string' && !error.code.includes('password')) {
-                    safeError.code = error.code;
-                }
-                if (error.hint && typeof error.hint === 'string' && !error.hint.includes('password')) {
-                    safeError.hint = error.hint;
-                }
-            }
-            
-            return safeError;
-        };
-
+        console.error('Error in savegame route:', error.message);
         return NextResponse.json(
-            {
-                message: `Error saving game: ${error?.message || 'Unknown error'}`,
-                ...sanitizeError(error)
-            },
+            { message: `Error saving game: ${error.message || 'Unknown error'}` },
             { status: 500 }
         );
     }

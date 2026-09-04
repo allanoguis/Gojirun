@@ -6,7 +6,7 @@ import obstacleImage from "@/assets/images/game/tank.svg";
 import cloud1Image from "@/assets/images/game/cloud1.png";
 import cloud2Image from "@/assets/images/game/cloud2.png";
 import cloud3Image from "@/assets/images/game/cloud3.png";
-import { saveGame, saveUser } from "@/lib/api-client";
+import { saveGame } from "@/lib/api-client";
 import { useUser } from "@clerk/nextjs";
 
 const guestAvatarUrl =
@@ -97,60 +97,9 @@ export default function Engine() {
       setSaveMessage("SAVING...");
 
       try {
-        // Fetch the public IP address with fallback
-        let ipAddress = "0.0.0.0";
-        try {
-          const ipResponse = await fetch("https://api64.ipify.org?format=json");
-          const ipData = await ipResponse.json();
-          ipAddress = ipData.ip;
-        } catch (e) {
-          console.warn("Could not fetch IP address, using fallback:", e);
-        }
-
-        // Detect user device/browser info
-        const userAgent = navigator.userAgent;
-        const isBrave = !!navigator.brave;
-        const isEdge = /Edg/.test(userAgent);
-        const isChrome =
-          /Chrome/.test(userAgent) &&
-          !isEdge &&
-          !isBrave &&
-          !/OPR/.test(userAgent);
-        const isFirefox = /Firefox/.test(userAgent);
-        const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
-        const isOpera = /OPR/.test(userAgent);
-
         // Handle Guest vs Signed In
         const playerID = isLoaded && isSignedIn && user ? user.id : "000000";
-        const email = isLoaded && isSignedIn && user && user.emailAddresses[0] ? user.emailAddresses[0].emailAddress : "guest@gojirun.local";
         const fullname = isLoaded && isSignedIn && user ? user.firstName || "Guest" : "Guest";
-        const profileImage = isLoaded && isSignedIn && user ? user.imageUrl : guestAvatarUrl;
-        const createdAt = isLoaded && isSignedIn && user ? user.createdAt : new Date();
-        const lastSignInAt = isLoaded && isSignedIn && user ? user.lastSignInAt : new Date();
-
-        // 1. Synchronize user profile with Supabase before saving the score
-        try {
-          await saveUser({
-            userId: playerID,
-            email: email,
-            fullname: fullname,
-            profileImageUrl: profileImage,
-            createdAt: createdAt,
-            lastSignInAt: lastSignInAt
-          });
-          console.log("✅ User synchronized successfully");
-        } catch (userSyncError) {
-          console.error("❌ User synchronization failed:", userSyncError.message);
-          // We continue saving the game even if sync fails, as the score is priority
-        }
-
-        let browserName = "Unknown Browser";
-        if (isBrave) browserName = "Brave";
-        else if (isEdge) browserName = "Microsoft Edge";
-        else if (isChrome) browserName = "Chrome";
-        else if (isFirefox) browserName = "Firefox";
-        else if (isSafari) browserName = "Safari";
-        else if (isOpera) browserName = "Opera";
 
         // Calculate game duration in seconds
         const gameDuration = gameStartTime ? Math.round((Date.now() - gameStartTime) / 1000) : 0;
@@ -160,9 +109,7 @@ export default function Engine() {
           playerName: fullname,
           score: finalScore,
           time: gameDuration,
-          ipAddress: ipAddress,
-          deviceType: browserName,
-          userAgent: userAgent,
+          userAgent: navigator.userAgent,
         };
 
         await saveGame(data);
@@ -181,7 +128,7 @@ export default function Engine() {
         isSavingRef.current = false;
       }
     },
-    [isLoaded, isSignedIn, user, gameStartTime, showSaveAlertMessage]
+    [isSavingRef, gameStartTime, isLoaded, isSignedIn, user, saveGame, showSaveAlertMessage, score]
   );
 
   // Jump function
