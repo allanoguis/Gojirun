@@ -16,9 +16,19 @@ serve(async (req) => {
     const { user_id, score, metadata } = await req.json()
 
     // Validate required fields
-    if (!user_id || score === undefined) {
+    if (!user_id || typeof user_id !== 'string') {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: user_id, score' }),
+        JSON.stringify({ error: 'Invalid or missing user_id' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    if (typeof score !== 'number' || isNaN(score)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid score: must be a number' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -27,8 +37,18 @@ serve(async (req) => {
     }
 
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return new Response(
+        JSON.stringify({ error: 'Missing Supabase environment variables' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -37,6 +57,13 @@ serve(async (req) => {
       config: {
         broadcast: { ack: true },
       },
+    })
+
+    // Subscribe to channel before sending
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log('[Edge Function] Channel subscribed')
+      }
     })
 
     // Send broadcast
@@ -54,6 +81,9 @@ serve(async (req) => {
       event: 'highscore_update',
       payload: broadcastPayload
     })
+
+    // Cleanup: unsubscribe after sending
+    channel.unsubscribe()
 
     console.log('[Edge Function] Broadcast sent successfully:', result)
 
