@@ -7,7 +7,8 @@ Add the following environment variables to your `.env.local` file:
 ```env
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=https://<your-project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<your-publishable-key>
+SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
 ```
 
 ## Setup Instructions
