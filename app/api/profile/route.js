@@ -2,12 +2,8 @@ import { NextResponse } from 'next/server';
 import { GameService } from '../../../lib/api-services';
 
 export async function GET(request) {
-    console.log('=== PROFILE API ROUTE CALLED ===');
-    
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-
-    console.log('Profile API: userId query:', userId);
 
     if (!userId) {
         return NextResponse.json({ message: 'User ID is required' }, { status: 400 });

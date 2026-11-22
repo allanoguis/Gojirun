@@ -20,12 +20,12 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -43,4 +43,5 @@ jobs:
           SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
           SUPABASE_SERVICE_ROLE_KEY: ci-placeholder
