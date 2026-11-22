@@ -17,7 +17,7 @@ export async function GET(request) {
     if (userId !== '000000') {
         try {
             const { auth } = await import('@clerk/nextjs/server');
-            const { userId: authedUserId } = auth();
+            const { userId: authedUserId } = await auth();
             
             console.log('Profile API: authedUserId:', authedUserId);
             

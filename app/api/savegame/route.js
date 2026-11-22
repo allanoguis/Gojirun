@@ -6,7 +6,7 @@ export async function POST(request) {
     try {
         const body = await request.json();
         const { player, playerName, score, time, userAgent } = body;
-        const { userId } = auth();
+        const { userId } = await auth();
 
         // Input validation
         if (!player || !playerName || score === undefined) {

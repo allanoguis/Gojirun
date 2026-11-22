@@ -6,7 +6,7 @@ export async function POST(request) {
     try {
         const body = await request.json();
         const { userId: bodyUserId } = body;
-        const { userId: authedUserId } = auth();
+        const { userId: authedUserId } = await auth();
 
         // Security Check: Only allow syncing if it's the Guest ID or the Authed User's ID
         if (bodyUserId !== '000000' && bodyUserId !== authedUserId) {
