@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { GameService } from '@/lib/api-services';
 
 export async function GET(request) {
@@ -7,6 +8,16 @@ export async function GET(request) {
 
     if (!userId) {
         return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
+    }
+
+    if (userId !== '000000') {
+        const { userId: authedUserId } = await auth();
+        if (!authedUserId) {
+            return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
+        }
+        if (userId !== authedUserId) {
+            return NextResponse.json({ message: 'Unauthorized profile access' }, { status: 403 });
+        }
     }
 
     try {
