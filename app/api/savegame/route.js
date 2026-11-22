@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import supabaseAdmin from '@/lib/supabase-admin';
+import { getSupabaseUrl, getSupabaseServiceRoleKey } from '@/lib/env';
 
 export async function POST(request) {
     try {
@@ -52,8 +53,8 @@ export async function POST(request) {
         console.log('Game saved successfully:', { player, score });
 
         // Fire-and-forget broadcast (don't fail save if broadcast fails)
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const supabaseUrl = getSupabaseUrl();
+        const serviceKey = getSupabaseServiceRoleKey();
         
         if (supabaseUrl && serviceKey) {
             fetch(`${supabaseUrl}/functions/v1/broadcast-highscore`, {
