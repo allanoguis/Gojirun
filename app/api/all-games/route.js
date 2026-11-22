@@ -8,7 +8,7 @@ export async function GET(request) {
         // Get all recent games from the database
         const { data: allGames, error: allError } = await supabaseAdmin
             .from('games')
-            .select('*')
+            .select('id, user_id, player_name, score, time, created_at')
             .order('created_at', { ascending: false })
             .limit(10);
 
