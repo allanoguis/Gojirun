@@ -1,8 +1,9 @@
 import path from "path";
+import { getSupabaseUrl } from "./lib/env.js";
 
 let supabaseHost = null;
 try {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const url = getSupabaseUrl();
   if (url) supabaseHost = new URL(url).hostname;
 } catch {
   // Invalid URL format; omit Supabase from image domains
