@@ -2,20 +2,18 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+The latest release on the default branch is supported with security updates.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| Version | Supported |
+| ------- | --------- |
+| 0.2.x   | Yes       |
+| < 0.2   | No        |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+Please report vulnerabilities privately using [GitHub private vulnerability reporting](https://github.com/allanoguis/Gojirun/security/advisories/new).
+Do not open a public issue for an unresolved security vulnerability.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Include a description of the affected component, reproduction steps, expected impact,
+and any proof of concept or logs that help us assess the issue. We will acknowledge
+reports as quickly as possible and provide an update after our initial assessment.
