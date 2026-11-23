@@ -10,13 +10,6 @@ const guestAvatarUrl =
 export default function ProfilePage() {
   const { isLoaded, isSignedIn, user } = useUser();
 
-  console.log("Profile page: Clerk state", { isLoaded, isSignedIn, user });
-  console.log("Profile page: Full user object:", JSON.stringify(user, null, 2));
-  console.log("Profile page: user.id =", user?.id);
-  console.log("Profile page: user.publicMetadata?.userId =", user?.publicMetadata?.userId);
-  console.log("Profile page: user.externalId =", user?.externalId);
-  console.log("Profile page: user.username =", user?.username);
-  console.log("Profile page: user.primaryEmailAddress?.emailAddress =", user?.primaryEmailAddress?.emailAddress);
 
   const uname = isLoaded && isSignedIn && user ? user.firstName : "Guest";
   const uemail =

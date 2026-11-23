@@ -54,7 +54,7 @@ export async function POST(request) {
                 message: `Error saving user: ${error?.message || 'Unknown error'}`,
                 code: error?.code,
                 details: error?.details,
-                hint: error?.hint
+                hint: process.env.NODE_ENV === 'development' ? error?.hint : undefined
             },
             { status: 500 }
         );

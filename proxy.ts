@@ -1,6 +1,6 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
-export default clerkMiddleware(async () => {});
+export default clerkMiddleware();
 
 export const config = {
   matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
