@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
 import { GameService } from '@/lib/api-services';
+import { getSessionApplicationIdentity, GUEST_USER_ID } from '@/lib/application-identity';
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
@@ -10,19 +11,22 @@ export async function GET(request) {
         return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
     }
 
-    if (userId !== '000000') {
+    let resolvedUserId;
+    if (userId === GUEST_USER_ID) {
+        resolvedUserId = GUEST_USER_ID;
+    } else {
         const session = await auth0.getSession();
-        const authedUserId = session?.user?.sub;
-        if (!authedUserId) {
+        resolvedUserId = await getSessionApplicationIdentity(auth0);
+        if (!resolvedUserId || !session?.user?.sub) {
             return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
         }
-        if (userId !== authedUserId) {
+        if (userId !== session.user.sub && userId !== resolvedUserId) {
             return NextResponse.json({ message: 'Unauthorized profile access' }, { status: 403 });
         }
     }
 
     try {
-        const pastTenGames = await GameService.getPastTenGames(userId);
+        const pastTenGames = await GameService.getPastTenGames(resolvedUserId);
         return NextResponse.json({ pastTenGames });
     } catch (error) {
         console.error('Error getting past ten games:', error);

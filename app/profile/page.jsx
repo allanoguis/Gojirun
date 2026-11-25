@@ -18,12 +18,12 @@ export default function ProfilePage() {
       ? user.email
       : "";
   const ucd =
-    isSignedIn && user?.updated_at
-      ? new Date(user.updated_at).toLocaleDateString()
+    isSignedIn && userProfile?.created_at
+      ? new Date(userProfile.created_at).toLocaleDateString()
       : "DD/MM/YYYY";
   const uls =
-    isSignedIn && user?.updated_at
-      ? new Date(user.updated_at).toLocaleDateString()
+    isSignedIn && userProfile?.last_sign_in_at
+      ? new Date(userProfile.last_sign_in_at).toLocaleDateString()
       : "DD/MM/YYYY";
 
   const [highscore, setHighscore] = useState(0);
@@ -38,8 +38,7 @@ export default function ProfilePage() {
       : guestAvatarUrl;
 
   const fetchProfileData = useCallback(async () => {
-    const targetUserId = user?.sub || "000000";
-    console.log("Profile page: user?.sub =", user?.sub, "=> targetUserId:", targetUserId);
+    const targetUserId = isSignedIn ? user.sub : "000000";
     
     // Always fetch data, including for Guest users (userId=000000)
     if (!targetUserId) {
@@ -49,7 +48,7 @@ export default function ProfilePage() {
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/profile?userId=${targetUserId}`);
+      const response = await fetch(`/api/profile?userId=${encodeURIComponent(targetUserId)}`);
       if (!response.ok) {
         console.error("Profile fetch failed:", response.status, response.statusText);
         throw new Error("Failed to fetch profile data");
@@ -75,7 +74,7 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [user?.sub]);
+  }, [isSignedIn, user?.sub]);
 
   useEffect(() => {
     if (isLoading) return;

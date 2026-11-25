@@ -16,20 +16,14 @@ export default function UserProfileSync() {
 
     const syncUserProfile = async () => {
       try {
-        const playerID = user.sub;
         const email = user.email || "unknown@example.com";
         const fullname = user.given_name || user.nickname || user.name || "User";
         const profileImage = user.picture || guestAvatarUrl;
-        const createdAt = user.updated_at ? new Date(user.updated_at) : new Date();
-        const lastSignInAt = user.updated_at ? new Date(user.updated_at) : new Date();
-
         await saveUser({
-          userId: playerID,
+          userId: user.sub,
           email: email,
           fullname: fullname,
-          profileImageUrl: profileImage,
-          createdAt: createdAt,
-          lastSignInAt: lastSignInAt
+          profileImageUrl: profileImage
         });
         
         console.log("✅ User profile synced on sign-in:", { fullname, email });

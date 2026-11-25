@@ -77,6 +77,7 @@ export default function Hero() {
         {/* Main Content */}
         <motion.div
           initial={{ opacity: 0 }}
+          animate={{ opacity: isLoading ? 0 : 1 }}
           transition={{ duration: 0.5 }}
           className="relative z-10 text-center px-4 flex flex-col justify-start items-center pt-28 md:pt-24 lg:pt-32"
         >

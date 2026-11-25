@@ -2,13 +2,15 @@ import { NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
 import supabaseAdmin from '@/lib/supabase-admin';
 import { getSupabaseUrl, getSupabaseServiceRoleKey } from '@/lib/env';
+import { getSessionApplicationIdentity, GUEST_USER_ID } from '@/lib/application-identity';
 
 export async function POST(request) {
     try {
         const body = await request.json();
         const { player, playerName, score, time, userAgent } = body;
-        const session = await auth0.getSession();
-        const userId = session?.user?.sub;
+        const applicationUserId = player === GUEST_USER_ID
+            ? GUEST_USER_ID
+            : await getSessionApplicationIdentity(auth0);
 
         // Input validation
         if (!player || !playerName || score === undefined) {
@@ -21,14 +23,18 @@ export async function POST(request) {
 
         // Security Check: If a real player ID is provided, it must match the active session.
         // Guest players (000000) are allowed without session matching.
-        if (player !== '000000') {
-            if (!userId) {
+        if (player !== GUEST_USER_ID) {
+            if (!applicationUserId) {
                 return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
             }
-
-            if (player !== userId) {
+            const session = await auth0.getSession();
+            if (player !== session?.user?.sub && player !== applicationUserId) {
                 return NextResponse.json({ message: 'Unauthorized session mismatch' }, { status: 403 });
             }
+        }
+        const resolvedPlayerId = applicationUserId;
+        if (!resolvedPlayerId) {
+            return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
         }
 
         // Insert game record
@@ -36,7 +42,7 @@ export async function POST(request) {
             .from('games')
             .insert([
                 {
-                    user_id: player,
+                    user_id: resolvedPlayerId,
                     player_name: playerName,
                     score: score,
                     user_agent: userAgent || 'Unknown',
@@ -65,7 +71,7 @@ export async function POST(request) {
                     'Authorization': `Bearer ${serviceKey}`
                 },
                 body: JSON.stringify({
-                    user_id: player,
+                    user_id: resolvedPlayerId,
                     score: score,
                     metadata: { player_name: playerName, created_at: new Date().toISOString() }
                 })
