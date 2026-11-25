@@ -73,10 +73,10 @@ export default function Collaborators() {
                       className="rounded-full ring-2 ring-white"
                     />
                     <div>
-                      <div className="font-light text-xl ml-2 text-white">
+                      <div className="font-light text-xl ml-2 text-card-foreground">
                         {contributor.login}
                       </div>
-                      <div className="text-sm font-light ml-2 text-white">
+                      <div className="text-sm font-light ml-2 text-card-foreground/70">
                         {contributor.contributions} contributions
                       </div>
                     </div>
@@ -84,14 +84,14 @@ export default function Collaborators() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex justify-between items-center mt-4">
-                    <div className="flex items-center gap-2 text-white">
+                    <div className="flex items-center gap-2 text-card-foreground">
                       <GithubIcon className="h-5 w-5" />
                       <span>{contributor.contributions} commits</span>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="hover:bg-accent hover:text-white border-none transition-all duration-500"
+                      className="text-card-foreground hover:bg-accent hover:text-accent-foreground border-border/70 transition-all duration-300"
                     >
                       <a
                         href={contributor.html_url}

@@ -63,7 +63,7 @@ export default function Footer() {
               />
               <button
                 type="submit"
-                className="px-3 py-1 bg-card-foreground text-white rounded-md hover:bg-accent transition-all duration-500 text-sm"
+                className="px-3 py-1 bg-card text-card-foreground border border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-all duration-500 text-sm"
               >
                 Go
               </button>

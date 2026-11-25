@@ -41,48 +41,52 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 z-50 w-full bg-transparent backdrop-blur-md px-4 sm:px-6 lg:px-8 h-[var(--nav-height)] flex items-center justify-between">
+    <nav className="fixed top-0 left-0 z-50 w-full border-b border-border/60 bg-background/85 px-3 backdrop-blur-md sm:px-6 lg:px-8 h-[var(--nav-height)] flex items-center justify-between">
       {/* Left section */}
-      <div className="flex items-center space-x-3">
-        <span className="text-sm sm:text-base">
-          Logged in as: <kbd className="px-2 py-1 bg-primary/10 rounded border border-primary/20">{username}</kbd>
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <span className="hidden min-w-0 text-sm lg:block">
+          <span className="hidden xl:inline">Logged in as: </span>
+          <kbd className="inline-block max-w-32 truncate rounded border border-primary/20 bg-primary/10 px-2 py-1">{username}</kbd>
         </span>
         {isLoading ? null : user ? (
           <a
             href="/auth/logout"
-            className="px-4 py-1.5 bg-primary text-secondary font-bold text-sm rounded-md hover:scale-105 transition-transform shadow-lg whitespace-nowrap ml-2"
+            className="min-h-10 whitespace-nowrap rounded-md bg-primary px-3 py-2 text-xs font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:px-4 sm:text-sm"
           >
-            LOG OUT
+            Log out
           </a>
         ) : (
           <a
             href="/auth/login"
-            className="px-4 py-1.5 bg-primary text-secondary font-bold text-sm rounded-md hover:scale-105 transition-transform animate-pulse antialiased shadow-lg whitespace-nowrap ml-2"
+            className="min-h-10 whitespace-nowrap rounded-md bg-primary px-3 py-2 text-xs font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:px-4 sm:text-sm"
           >
-            SIGN IN / REGISTER
+            Sign in
           </a>
         )}
       </div>
 
       {/* Desktop Menu */}
-      <div className="hidden md:flex space-x-2 items-center">
+      <div className="hidden items-center gap-1 md:flex">
         {navItems.map(({ label, icon: Icon, onClick }) => (
           <Button
             key={label}
             variant="ghost"
-            className="hover:bg-accent transition-all duration-300"
+            size="sm"
+            className="gap-2 px-2.5 text-primary hover:bg-accent hover:text-accent-foreground lg:px-3"
             onClick={onClick}
           >
-            <Icon className="inline-block mr-2 h-4 w-4" />
-            {label}
+            <Icon className="h-4 w-4" />
+            <span className="hidden lg:inline">{label}</span>
           </Button>
         ))}
 
         {/* Theme Toggle */}
         <Button
           variant="ghost"
-          className="hover:bg-accent transition-all duration-300"
+          size="icon"
+          className="text-primary hover:bg-accent hover:text-accent-foreground"
           onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          aria-label="Toggle theme"
         >
           {theme === "light" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
@@ -94,6 +98,8 @@ export default function Navigation() {
           variant="ghost"
           size="icon"
           onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={mobileOpen}
         >
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </Button>
@@ -101,18 +107,19 @@ export default function Navigation() {
 
       {/* Mobile Dropdown */}
       {mobileOpen && (
-        <div className="absolute top-16 left-0 w-full bg-background shadow-lg rounded-b-xl p-4 space-y-2 md:hidden">
+        <div className="absolute left-0 top-[var(--nav-height)] w-full border-b border-border/60 bg-background p-3 shadow-lg md:hidden">
+          <div className="mx-auto flex max-w-md flex-col gap-1">
           {navItems.map(({ label, icon: Icon, onClick }) => (
             <Button
               key={label}
               variant="ghost"
-              className="w-full justify-start hover:bg-accent transition-all"
+              className="min-h-11 w-full justify-start text-primary hover:bg-accent hover:text-accent-foreground"
               onClick={() => {
                 onClick();
                 setMobileOpen(false);
               }}
             >
-              <Icon className="inline-block mr-2 h-4 w-4" />
+              <Icon className="mr-3 h-5 w-5" />
               {label}
             </Button>
           ))}
@@ -120,12 +127,13 @@ export default function Navigation() {
           {/* Theme Toggle Mobile */}
           <Button
             variant="ghost"
-            className="w-full justify-start hover:bg-accent transition-all"
+            className="min-h-11 w-full justify-start text-primary hover:bg-accent hover:text-accent-foreground"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
             {theme === "light" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             <span className="ml-2">Toggle Theme</span>
           </Button>
+          </div>
         </div>
       )}
     </nav>

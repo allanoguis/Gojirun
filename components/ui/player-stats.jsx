@@ -116,7 +116,7 @@ const PlayerStats = ({
         )}
       </div>
       
-      <div className="bg-card-foreground rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border border-primary/20 overflow-hidden">
+      <div className="bg-card text-card-foreground rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-primary/20 overflow-hidden">
         <div className="p-4">
           <div className="flex items-center gap-4">
             {/* Rank Number */}

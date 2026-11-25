@@ -42,10 +42,10 @@ body {
   :root {
     --nav-height: 64px;
     --font-space: "Space Grotesk";
-    --background: 51, 48%, 92%;
+    --background: 51 48% 92%;
     --foreground: 222.2 84% 4.9%;
-    --card: 205, 28%, 40%;
-    --card-foreground: 205, 28%, 40%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
     --primary: 222.2 47.4% 11.2%;
@@ -54,7 +54,7 @@ body {
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 357, 100%, 67%;
+    --accent: 357 100% 67%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -77,10 +77,10 @@ body {
   .dark {
     --nav-height: 64px;
     --font-space: "Space Grotesk";
-    --background: 222, 47%, 11%;
+    --background: 222 47% 11%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 320, 100%, 15%;
+    --card: 217.2 32.6% 17.5%;
+    --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
@@ -89,7 +89,7 @@ body {
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 0, 100%, 50%;
+    --accent: 0 100% 50%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
