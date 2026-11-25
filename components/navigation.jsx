@@ -15,20 +15,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import {
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-  useUser,
-} from "@clerk/nextjs";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 export default function Navigation() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { isLoaded, isSignedIn, user } = useUser();
-  const username = isLoaded && isSignedIn && user ? user.firstName : "Guest";
+  const { user, isLoading } = useUser();
+  const username = user ? user.given_name || user.nickname || user.name || "User" : "Guest";
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -53,16 +47,21 @@ export default function Navigation() {
         <span className="text-sm sm:text-base">
           Logged in as: <kbd className="px-2 py-1 bg-primary/10 rounded border border-primary/20">{username}</kbd>
         </span>
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
-        <SignedOut>
-          <SignInButton mode="modal">
-            <button className="px-4 py-1.5 bg-primary text-secondary font-bold text-sm rounded-md hover:scale-105 transition-transform animate-pulse antialiased shadow-lg whitespace-nowrap ml-2">
-              SIGN IN / REGISTER
-            </button>
-          </SignInButton>
-        </SignedOut>
+        {isLoading ? null : user ? (
+          <a
+            href="/auth/logout"
+            className="px-4 py-1.5 bg-primary text-secondary font-bold text-sm rounded-md hover:scale-105 transition-transform shadow-lg whitespace-nowrap ml-2"
+          >
+            LOG OUT
+          </a>
+        ) : (
+          <a
+            href="/auth/login"
+            className="px-4 py-1.5 bg-primary text-secondary font-bold text-sm rounded-md hover:scale-105 transition-transform animate-pulse antialiased shadow-lg whitespace-nowrap ml-2"
+          >
+            SIGN IN / REGISTER
+          </a>
+        )}
       </div>
 
       {/* Desktop Menu */}

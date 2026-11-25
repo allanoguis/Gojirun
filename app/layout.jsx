@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
-import { ClerkProvider } from "@clerk/nextjs";
+import { Auth0Provider } from "@auth0/nextjs-auth0/client";
+import { auth0 } from "@/lib/auth0";
 import Navigation from "../components/navigation";
 import UserProfileSync from "../components/user-profile-sync";
 import { setupAutoCleanup } from "../lib/supabase-realtime";
@@ -20,9 +21,11 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const session = await auth0.getSession();
+
   return (
-    <ClerkProvider>
+    <Auth0Provider user={session?.user}>
       <html
         lang="en"
         className="scroll-smooth antialiased"
@@ -39,6 +42,6 @@ export default function RootLayout({ children }) {
           </ThemeProvider>
         </body>
       </html>
-    </ClerkProvider>
+    </Auth0Provider>
   );
 }

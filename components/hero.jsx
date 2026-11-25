@@ -1,7 +1,7 @@
 "use client"; // Marks this component as client-side
 
 import React from "react";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { motion } from "framer-motion";
 import StartButton from "./ui/start-button";
 import Image from "next/image";
@@ -11,9 +11,9 @@ import cloud1 from "@/assets/images/game/cloud1.png";
 import { useRouter } from "next/navigation";
 
 export default function Hero() {
-  const { isLoaded, isSignedIn, user } = useUser(); // useUser hook for client-side user data
+  const { user, isLoading } = useUser();
   // Safely get the username, or use firstName, or fallback to "Guest"
-  const username = isLoaded && isSignedIn && user ? user.firstName : "Guest";
+  const username = user ? user.given_name || user.nickname || user.name || "User" : "Guest";
 
   // Animation variants
   const loadingVariants = {
@@ -43,7 +43,7 @@ export default function Hero() {
     <>
       <section className="relative flex items-start justify-center h-screen w-full bg-gradient-to-b from-blue-400 to-orange-400 dark:from-blue-900 dark:to-orange-900 overflow-hidden">
         {/* Loading Screen */}
-        {!isLoaded && (
+        {isLoading && (
           <motion.div
             variants={loadingVariants}
             initial="hidden"
@@ -77,7 +77,7 @@ export default function Hero() {
         {/* Main Content */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: isLoaded ? 1 : 0 }}
+          animate={{ opacity: isLoading ? 0 : 1 }}
           transition={{ duration: 0.5 }}
           className="relative z-10 text-center px-4 flex flex-col justify-start items-center pt-28 md:pt-24 lg:pt-32"
         >

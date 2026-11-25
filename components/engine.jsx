@@ -7,7 +7,7 @@ import cloud1Image from "@/assets/images/game/cloud1.png";
 import cloud2Image from "@/assets/images/game/cloud2.png";
 import cloud3Image from "@/assets/images/game/cloud3.png";
 import { saveGame } from "@/lib/api-client";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const guestAvatarUrl =
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_GUEST_AVATAR_URL?.trim()) ||
@@ -68,7 +68,7 @@ export default function Engine() {
   const isSavingRef = useRef(false);
   const groundRef = useRef(GROUND);
 
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { user, isLoading } = useUser();
 
   // Alert function for save feedback
   const showSaveAlertMessage = useCallback((type, message) => {
@@ -98,8 +98,8 @@ export default function Engine() {
 
       try {
         // Handle Guest vs Signed In
-        const playerID = isLoaded && isSignedIn && user ? user.id : "000000";
-        const fullname = isLoaded && isSignedIn && user ? user.firstName || "Guest" : "Guest";
+        const playerID = !isLoading && user ? user.sub : "000000";
+        const fullname = !isLoading && user ? user.given_name || user.nickname || user.name || "Guest" : "Guest";
 
         // Calculate game duration in seconds
         const gameDuration = gameStartTime ? Math.round((Date.now() - gameStartTime) / 1000) : 0;
@@ -128,7 +128,7 @@ export default function Engine() {
         isSavingRef.current = false;
       }
     },
-    [isSavingRef, gameStartTime, isLoaded, isSignedIn, user, saveGame, showSaveAlertMessage, score]
+    [isSavingRef, gameStartTime, isLoading, user, saveGame, showSaveAlertMessage, score]
   );
 
   // Jump function

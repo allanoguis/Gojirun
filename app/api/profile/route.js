@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth0 } from '@/lib/auth0';
 import { GameService } from '../../../lib/api-services';
+import { getSessionApplicationIdentity, GUEST_USER_ID } from '@/lib/application-identity';
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
@@ -10,26 +11,22 @@ export async function GET(request) {
         return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
     }
 
-    // For signed-in users, verify auth
-    if (userId !== '000000') {
-        const { userId: authedUserId } = await auth();
-
-        try {
-            if (!authedUserId) {
-                return NextResponse.json({ message: 'User not authenticated' }, { status: 401 });
-            }
-            
-            if (userId !== authedUserId) {
-                return NextResponse.json({ message: 'Unauthorized profile access' }, { status: 403 });
-            }
-        } catch (authError) {
-            console.error('Auth error:', authError);
-            return NextResponse.json({ message: 'Authentication error' }, { status: 500 });
+    let resolvedUserId;
+    if (userId === GUEST_USER_ID) {
+        resolvedUserId = GUEST_USER_ID;
+    } else {
+        const session = await auth0.getSession();
+        resolvedUserId = await getSessionApplicationIdentity(auth0);
+        if (!resolvedUserId || !session?.user?.sub) {
+            return NextResponse.json({ message: 'User not authenticated' }, { status: 401 });
+        }
+        if (userId !== session.user.sub && userId !== resolvedUserId) {
+            return NextResponse.json({ message: 'Unauthorized profile access' }, { status: 403 });
         }
     }
 
     try {
-        const profileData = await GameService.getProfileData(userId);
+        const profileData = await GameService.getProfileData(resolvedUserId);
         return NextResponse.json(profileData);
     } catch (error) {
         console.error('Error message:', error?.message);

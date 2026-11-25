@@ -1,7 +1,12 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
+import { NextRequest } from 'next/server';
+import { auth0 } from '@/lib/auth0';
 
-export default clerkMiddleware();
+export async function proxy(request: NextRequest) {
+  return await auth0.middleware(request);
+}
 
 export const config = {
-  matcher: ['/__clerk/:path*', '/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+  ],
 };
