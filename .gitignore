@@ -38,6 +38,11 @@ yarn-error.log*
 .env.local
 .env
 
+# agent and skills tooling
+/.agents/
+/.claude/
+/skills-lock.json
+
 # vercel
 .vercel
 

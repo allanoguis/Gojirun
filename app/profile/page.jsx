@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import Image from "next/image";
 
 const guestAvatarUrl =
@@ -8,21 +8,22 @@ const guestAvatarUrl =
   "https://api.dicebear.com/7.x/avataaars/png?seed=Guest&size=200";
 
 export default function ProfilePage() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { user, isLoading } = useUser();
+  const isSignedIn = Boolean(user);
 
 
-  const uname = isLoaded && isSignedIn && user ? user.firstName : "Guest";
+  const uname = user ? user.given_name || user.nickname || user.name || "User" : "Guest";
   const uemail =
-    isLoaded && isSignedIn && user && user.emailAddresses.length > 0
-      ? user.emailAddresses[0].emailAddress
+    isSignedIn && user?.email
+      ? user.email
       : "";
   const ucd =
-    isLoaded && isSignedIn && user && user.createdAt
-      ? new Date(user.createdAt).toLocaleDateString()
+    isSignedIn && user?.updated_at
+      ? new Date(user.updated_at).toLocaleDateString()
       : "DD/MM/YYYY";
   const uls =
-    isLoaded && isSignedIn && user && user.lastSignInAt
-      ? new Date(user.lastSignInAt).toLocaleDateString()
+    isSignedIn && user?.updated_at
+      ? new Date(user.updated_at).toLocaleDateString()
       : "DD/MM/YYYY";
 
   const [highscore, setHighscore] = useState(0);
@@ -32,13 +33,13 @@ export default function ProfilePage() {
 
   // Calculate avatar URL after userProfile state is available
   const uimage =
-    isLoaded && isSignedIn && user
-      ? (userProfile?.profile_image_url || user.imageUrl)
+    isSignedIn && user
+      ? (userProfile?.profile_image_url || user.picture)
       : guestAvatarUrl;
 
   const fetchProfileData = useCallback(async () => {
-    const targetUserId = user?.id || user?.publicMetadata?.userId || "000000";
-    console.log("Profile page: user?.id =", user?.id, "user.publicMetadata?.userId =", user?.publicMetadata?.userId, "=> targetUserId:", targetUserId);
+    const targetUserId = user?.sub || "000000";
+    console.log("Profile page: user?.sub =", user?.sub, "=> targetUserId:", targetUserId);
     
     // Always fetch data, including for Guest users (userId=000000)
     if (!targetUserId) {
@@ -74,14 +75,14 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, user?.publicMetadata?.userId]);
+  }, [user?.sub]);
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (isLoading) return;
     
     // Always fetch profile data for both signed-in and Guest users
     fetchProfileData();
-  }, [isLoaded, isSignedIn, user, fetchProfileData]);
+  }, [isLoading, isSignedIn, user, fetchProfileData]);
 
   return (
     <div className="flex flex-col items-center min-h-screen w-full pt-[calc(var(--nav-height)+2rem)] pb-20 px-4">
@@ -97,7 +98,7 @@ export default function ProfilePage() {
               className="relative w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-background object-cover shadow-xl"
               onError={(e) => {
                 console.log("Profile avatar load error for:", uname, "URL:", e.target.src);
-                // Fallback to guest avatar if database/Clerk avatar fails
+                // Fallback to guest avatar if the database/Auth0 avatar fails
                 e.target.src = guestAvatarUrl;
               }}
               onLoad={() => {

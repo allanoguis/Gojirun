@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth0 } from '@/lib/auth0';
 import supabaseAdmin from '@/lib/supabase-admin';
 import { getSupabaseUrl, getSupabaseServiceRoleKey } from '@/lib/env';
 
@@ -7,7 +7,8 @@ export async function POST(request) {
     try {
         const body = await request.json();
         const { player, playerName, score, time, userAgent } = body;
-        const { userId } = await auth();
+        const session = await auth0.getSession();
+        const userId = session?.user?.sub;
 
         // Input validation
         if (!player || !playerName || score === undefined) {

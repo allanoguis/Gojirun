@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth0 } from '@/lib/auth0';
 import supabaseAdmin from '@/lib/supabase-admin';
 
 export async function POST(request) {
     try {
         const body = await request.json();
         const { userId: bodyUserId } = body;
-        const { userId: authedUserId } = await auth();
+        const session = await auth0.getSession();
+        const authedUserId = session?.user?.sub;
 
         // Security Check: Only allow syncing if it's the Guest ID or the Authed User's ID
         if (bodyUserId !== '000000' && bodyUserId !== authedUserId) {

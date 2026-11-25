@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { saveUser } from "@/lib/api-client";
 
 const guestAvatarUrl =
@@ -8,20 +8,20 @@ const guestAvatarUrl =
   "https://api.dicebear.com/7.x/avataaars/png?seed=Guest&size=200";
 
 export default function UserProfileSync() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { user, isLoading } = useUser();
 
   useEffect(() => {
     // Only sync when user is loaded and signed in
-    if (!isLoaded || !isSignedIn || !user) return;
+    if (isLoading || !user) return;
 
     const syncUserProfile = async () => {
       try {
-        const playerID = user.id;
-        const email = user.emailAddresses[0]?.emailAddress || "unknown@example.com";
-        const fullname = user.firstName || user.username || "User";
-        const profileImage = user.imageUrl || guestAvatarUrl;
-        const createdAt = user.createdAt || new Date();
-        const lastSignInAt = user.lastSignInAt || new Date();
+        const playerID = user.sub;
+        const email = user.email || "unknown@example.com";
+        const fullname = user.given_name || user.nickname || user.name || "User";
+        const profileImage = user.picture || guestAvatarUrl;
+        const createdAt = user.updated_at ? new Date(user.updated_at) : new Date();
+        const lastSignInAt = user.updated_at ? new Date(user.updated_at) : new Date();
 
         await saveUser({
           userId: playerID,
@@ -39,7 +39,7 @@ export default function UserProfileSync() {
     };
 
     syncUserProfile();
-  }, [isLoaded, isSignedIn, user]);
+  }, [isLoading, user]);
 
   // This component doesn't render anything - it's just for side effects
   return null;

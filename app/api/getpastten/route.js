@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth0 } from '@/lib/auth0';
 import { GameService } from '@/lib/api-services';
 
 export async function GET(request) {
@@ -11,7 +11,8 @@ export async function GET(request) {
     }
 
     if (userId !== '000000') {
-        const { userId: authedUserId } = await auth();
+        const session = await auth0.getSession();
+        const authedUserId = session?.user?.sub;
         if (!authedUserId) {
             return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
         }

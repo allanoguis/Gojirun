@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GameService } from '@/lib/api-services';
+import { auth0 } from '@/lib/auth0';
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
@@ -7,6 +8,17 @@ export async function GET(request) {
 
     if (!playerId) {
         return NextResponse.json({ message: 'Player ID is required' }, { status: 400 });
+    }
+
+    if (playerId !== '000000') {
+        const session = await auth0.getSession();
+        const authedUserId = session?.user?.sub;
+        if (!authedUserId) {
+            return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
+        }
+        if (playerId !== authedUserId) {
+            return NextResponse.json({ message: 'Unauthorized profile access' }, { status: 403 });
+        }
     }
 
     try {
