@@ -169,7 +169,7 @@ export const Leaderboard = () => {
   // Error state
   if (error && !data) {
     return (
-      <div className="flex flex-col w-full min-h-screen items-center justify-center text-white pt-[calc(var(--nav-height)+4rem)] pb-20">
+      <div className="flex flex-col w-full min-h-screen items-center justify-center text-foreground pt-[calc(var(--nav-height)+4rem)] pb-20">
         <div className="text-center">
           <Trophy className="w-16 h-16 mx-auto mb-4 text-destructive/50" />
           <h2 className="text-2xl font-bold mb-2">Oops!</h2>
@@ -187,7 +187,7 @@ export const Leaderboard = () => {
 
   return (
     <>
-      <div className="flex flex-col w-full min-h-screen items-center text-white pt-[calc(var(--nav-height)+4rem)] pb-20">
+      <div className="flex flex-col w-full min-h-screen items-center text-foreground pt-[calc(var(--nav-height)+4rem)] pb-20">
         {/* Header */}
         <div className="mb-8 text-center px-4">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -264,7 +264,7 @@ export const Leaderboard = () => {
         {loading && data && (
           <div className="fixed inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary/20 border-t-primary mx-auto mb-2"></div>
               <p className="text-sm text-tertiary">Loading...</p>
             </div>
           </div>

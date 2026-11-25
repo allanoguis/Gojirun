@@ -50,7 +50,7 @@ const LeaderboardFilters = ({
             placeholder="Search players by name or email..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full pl-10 pr-10 py-3 bg-background/50 border border-primary/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-white placeholder:text-tertiary"
+            className="w-full pl-10 pr-10 py-3 bg-background/50 border border-primary/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-tertiary"
             disabled={loading}
           />
           {searchInput && (

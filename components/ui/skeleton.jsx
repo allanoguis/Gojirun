@@ -15,7 +15,7 @@ const Skeleton = ({ className, ...props }) => {
 // Leaderboard skeleton component
 export const LeaderboardSkeleton = () => {
   return (
-    <div className="flex flex-col w-full min-h-screen items-center text-white pt-[calc(var(--nav-height)+4rem)] pb-20">
+    <div className="flex flex-col w-full min-h-screen items-center text-foreground pt-[calc(var(--nav-height)+4rem)] pb-20">
       <div className="mb-12 text-center px-4">
         <Skeleton className="h-8 w-48 mx-auto mb-4" />
         <Skeleton className="h-4 w-32 mx-auto" />
@@ -27,7 +27,7 @@ export const LeaderboardSkeleton = () => {
             <div className="flex items-center gap-2 mb-1">
               <Skeleton className="h-6 w-24" />
             </div>
-            <div className="flex items-center p-4 gap-4 bg-card-foreground rounded-xl shadow-lg">
+            <div className="flex items-center p-4 gap-4 bg-card rounded-xl shadow-lg">
               <Skeleton className="w-8 h-8 rounded-full" />
               <Skeleton className="w-12 h-12 rounded-full" />
               <div className="flex-grow">
@@ -49,7 +49,7 @@ export const LeaderboardSkeleton = () => {
 // Player card skeleton
 export const PlayerCardSkeleton = () => {
   return (
-    <div className="flex items-center p-4 gap-4 bg-card-foreground rounded-xl shadow-lg animate-pulse">
+    <div className="flex items-center p-4 gap-4 bg-card rounded-xl shadow-lg animate-pulse">
       <Skeleton className="w-8 h-8 rounded-full" />
       <Skeleton className="w-12 h-12 rounded-full" />
       <div className="flex-grow">
